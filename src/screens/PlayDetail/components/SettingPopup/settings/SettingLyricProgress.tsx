@@ -16,13 +16,8 @@ export default () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.content}>
-          <CheckBox marginBottom={3} check={isShowLyricProgressSetting} label={t('play_detail_setting_show_lyric_progress_setting')} onChange={setShowLyricProgressSetting} />
-        </View>
-      </View>
+      <CheckBox marginBottom={3} check={isShowLyricProgressSetting} label={t('play_detail_setting_show_lyric_progress_setting')} onChange={setShowLyricProgressSetting} />
     </View>
-
   )
 }
 

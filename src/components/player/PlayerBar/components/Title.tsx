@@ -39,8 +39,13 @@ export default ({ isHome }: { isHome: boolean }) => {
     : ''
   // console.log(playMusicInfo)
   return (
-    <TouchableOpacity style={styles.container} onLongPress={handleLongPress} onPress={handlePress} activeOpacity={0.7} >
-      <Text color={theme['c-font-label']} numberOfLines={1}>{title}</Text>
+    <TouchableOpacity style={styles.container} onLongPress={handleLongPress} onPress={handlePress} activeOpacity={0.8} >
+      <Text numberOfLines={1} style={{ fontWeight: '600', fontSize: 13 }}>{musicInfo.name}</Text>
+      {musicInfo.singer && (
+        <Text color={theme['c-font-label']} numberOfLines={1} size={11} style={{ marginTop: 1 }}>
+          {musicInfo.singer}
+        </Text>
+      )}
     </TouchableOpacity>
   )
 }
@@ -68,9 +73,6 @@ export default ({ isHome }: { isHome: boolean }) => {
 const styles = createStyle({
   container: {
     width: '100%',
-    paddingHorizontal: 2,
-    // paddingBottom: 4,
-    // height: '50%',
-    // backgroundColor: 'rgba(0, 0, 0, .1)',
+    paddingVertical: 2,
   },
 })

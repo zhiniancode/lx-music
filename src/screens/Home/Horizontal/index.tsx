@@ -5,6 +5,7 @@ import StatusBar from '@/components/common/StatusBar'
 import Header from './Header'
 import Main from './Main'
 import { createStyle } from '@/utils/tools'
+import { usePlayMusicInfo } from '@/store/player/hook'
 
 const styles = createStyle({
   container: {
@@ -18,6 +19,9 @@ const styles = createStyle({
 })
 
 export default () => {
+  const playMusicInfo = usePlayMusicInfo()
+  const hasPlayingMusic = !!playMusicInfo.musicInfo
+
   return (
     <>
       <StatusBar />
@@ -26,7 +30,7 @@ export default () => {
         <View style={styles.content}>
           <Header />
           <Main />
-          <PlayerBar isHome />
+          {hasPlayingMusic && <PlayerBar isHome />}
         </View>
       </View>
     </>

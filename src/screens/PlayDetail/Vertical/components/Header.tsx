@@ -1,4 +1,4 @@
-import { memo, useRef } from 'react'
+import { memo } from 'react'
 
 import { View, StyleSheet } from 'react-native'
 
@@ -10,10 +10,8 @@ import Text from '@/components/common/Text'
 import { scaleSizeH } from '@/utils/pixelRatio'
 import { HEADER_HEIGHT as _HEADER_HEIGHT, NAV_SHEAR_NATIVE_IDS } from '@/config/constant'
 import commonState from '@/store/common/state'
-import SettingPopup, { type SettingPopupType } from '../../components/SettingPopup'
 import { useStatusbarHeight } from '@/store/common/hook'
 import Btn from './Btn'
-import TimeoutExitBtn from './TimeoutExitBtn'
 
 export const HEADER_HEIGHT = scaleSizeH(_HEADER_HEIGHT)
 
@@ -25,21 +23,17 @@ const Title = () => {
 
   return (
     <View style={styles.titleContent}>
-      <Text numberOfLines={1} style={styles.title}>{musicInfo.name}</Text>
-      <Text numberOfLines={1} style={styles.title} size={12} color={theme['c-font-label']}>{musicInfo.singer}</Text>
+      <Text numberOfLines={1} style={styles.title} color="#FFFFFF">{musicInfo.name}</Text>
+      <Text numberOfLines={1} style={[styles.title, styles.subtitle]} size={12} color="rgba(255, 255, 255, 0.8)">{musicInfo.singer}</Text>
     </View>
   )
 }
 
 export default memo(() => {
-  const popupRef = useRef<SettingPopupType>(null)
   const statusBarHeight = useStatusbarHeight()
 
   const back = () => {
     void pop(commonState.componentIds.playDetail!)
-  }
-  const showSetting = () => {
-    popupRef.current?.show()
   }
 
   return (
@@ -48,10 +42,8 @@ export default memo(() => {
       <View style={styles.container}>
         <Btn icon="chevron-left" onPress={back} />
         <Title />
-        <TimeoutExitBtn />
-        <Btn icon="slider" onPress={showSetting} />
+        <View style={styles.placeholder} />
       </View>
-      <SettingPopup ref={popupRef} direction="vertical" />
     </View>
   )
 })
@@ -60,18 +52,28 @@ export default memo(() => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    // justifyContent: 'center',
+    alignItems: 'center',
     height: '100%',
   },
   titleContent: {
     flex: 1,
     paddingHorizontal: 5,
-    // alignItems: 'center',
+    alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
-    // flex: 1,
-    // textAlign: 'center',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  subtitle: {
+    textShadowColor: 'rgba(0, 0, 0, 0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  placeholder: {
+    width: 44,
   },
   icon: {
     paddingLeft: 4,

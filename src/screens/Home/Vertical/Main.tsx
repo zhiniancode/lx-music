@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from 'react'
 import { View } from 'react-native'
-import Search from '../Views/Search'
+import Home from '../Views/Home'
 import SongList from '../Views/SongList'
 import Mylist from '../Views/Mylist'
 import Leaderboard from '../Views/Leaderboard'
@@ -16,15 +16,14 @@ const hideKeys = [
   'list.isShowInterval',
   'theme.fontShadow',
 ] as Readonly<Array<keyof LX.AppSetting>>
-
-const SearchPage = () => {
-  const [visible, setVisible] = useState(commonState.navActiveId == 'nav_search')
-  const component = useMemo(() => <Search />, [])
+const HomePage = () => {
+  const [visible, setVisible] = useState(commonState.navActiveId == 'nav_home')
+  const component = useMemo(() => <Home />, [])
   useEffect(() => {
     let currentId: CommonState['navActiveId'] = commonState.navActiveId
     const handleNavIdUpdate = (id: CommonState['navActiveId']) => {
       currentId = id
-      if (id == 'nav_search') {
+      if (id == 'nav_home') {
         requestAnimationFrame(() => {
           setVisible(true)
         })
@@ -46,7 +45,7 @@ const SearchPage = () => {
       global.state_event.off('navActiveIdUpdated', handleNavIdUpdate)
       global.state_event.off('themeUpdated', handleHide)
       global.state_event.off('languageChanged', handleHide)
-      global.state_event.off('configUpdated', handleConfigUpdated)
+      global.state_event.on('configUpdated', handleConfigUpdated)
     }
   }, [])
 
@@ -179,14 +178,14 @@ const SettingPage = () => {
 }
 
 const viewMap = {
-  nav_search: 0,
+  nav_home: 0,
   nav_songlist: 1,
   nav_top: 2,
   nav_love: 3,
   nav_setting: 4,
 }
 const indexMap = [
-  'nav_search',
+  'nav_home',
   'nav_songlist',
   'nav_top',
   'nav_love',
@@ -274,8 +273,8 @@ const Main = () => {
       scrollEnabled={settingState.setting['common.homePageScroll']}
       style={styles.pagerView}
     >
-      <View collapsable={false} key="nav_search" style={styles.pageStyle}>
-        <SearchPage />
+      <View collapsable={false} key="nav_home" style={styles.pageStyle}>
+        <HomePage />
       </View>
       <View collapsable={false} key="nav_songlist" style={styles.pageStyle}>
         <SongListPage />
@@ -289,21 +288,6 @@ const Main = () => {
       <View collapsable={false} key="nav_setting" style={styles.pageStyle}>
         <SettingPage />
       </View>
-      {/* <View collapsable={false} key="nav_search" style={styles.pageStyle}>
-        <Search />
-      </View>
-      <View collapsable={false} key="nav_songlist" style={styles.pageStyle}>
-        <SongList />
-      </View>
-      <View collapsable={false} key="nav_top" style={styles.pageStyle}>
-        <Leaderboard />
-      </View>
-      <View collapsable={false} key="nav_love" style={styles.pageStyle}>
-        <Mylist />
-      </View>
-      <View collapsable={false} key="nav_setting" style={styles.pageStyle}>
-        <Setting />
-      </View> */}
     </PagerView>
   ), [onPageScrollStateChanged, onPageSelected])
 

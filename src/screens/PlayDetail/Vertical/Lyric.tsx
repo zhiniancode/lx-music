@@ -334,31 +334,28 @@ export default () => {
 const styles = createStyle({
   container: {
     flex: 1,
-    paddingLeft: 20,
-    paddingRight: 20,
-    // backgroundColor: 'rgba(0,0,0,0.1)',
+    paddingLeft: 25,
+    paddingRight: 25,
+    paddingTop: 10,
   },
   space: {
-    paddingTop: '100%',
+    paddingTop: '50%',
   },
   line: {
-    paddingTop: 10,
-    paddingBottom: 10,
-    // opacity: 0,
+    paddingTop: 12,
+    paddingBottom: 12,
   },
   lineText: {
     textAlign: 'center',
-    // fontSize: 16,
-    // lineHeight: 20,
-    // paddingTop: 5,
-    // paddingBottom: 5,
-    // opacity: 0,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   lineTranslationText: {
     textAlign: 'center',
-    // fontSize: 13,
-    // lineHeight: 17,
     paddingTop: 5,
-    // paddingBottom: 5,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 })

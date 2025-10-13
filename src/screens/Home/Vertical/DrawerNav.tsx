@@ -38,6 +38,22 @@ const styles = createStyle({
     paddingTop: 10,
     paddingBottom: 10,
   },
+  infoSection: {
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingLeft: 25,
+    paddingRight: 25,
+  },
+  infoText: {
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  auxiliaryMenus: {
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(128, 128, 128, 0.2)',
+    paddingTop: 5,
+    paddingBottom: 5,
+  },
   menuItem: {
     flexDirection: 'row',
     paddingTop: 13,
@@ -122,22 +138,30 @@ export default memo(() => {
     setNavActiveId(id)
   }
 
-
   return (
     <View style={{ ...styles.container, backgroundColor: theme['c-content-background'] }}>
       <Header />
       <ScrollView style={styles.menus}>
         <View style={styles.list}>
-          {NAV_MENUS.map(menu => <MenuItem key={menu.id} id={menu.id} icon={menu.icon} onPress={handlePress} />)}
+          <View style={styles.infoSection}>
+            <Text style={styles.infoText} size={13} color={theme['c-font-label']}>
+              主要导航已移至底部导航栏
+            </Text>
+            <Text style={styles.infoText} size={13} color={theme['c-font-label']}>
+              点击顶部搜索图标进入搜索页面
+            </Text>
+          </View>
         </View>
       </ScrollView>
 
-      {
-        showBackBtn ? <MenuItem id="back_home" icon="home" onPress={handlePress} /> : null
-      }
-      {
-        showExitBtn ? <MenuItem id="nav_exit" icon="exit2" onPress={handlePress} /> : null
-      }
+      <View style={styles.auxiliaryMenus}>
+        {
+          showBackBtn ? <MenuItem id="back_home" icon="home" onPress={handlePress} /> : null
+        }
+        {
+          showExitBtn ? <MenuItem id="nav_exit" icon="exit2" onPress={handlePress} /> : null
+        }
+      </View>
     </View>
   )
 })

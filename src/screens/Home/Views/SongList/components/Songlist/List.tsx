@@ -1,7 +1,8 @@
 import { useRef, useState, useMemo, forwardRef, useImperativeHandle } from 'react'
-import { FlatList, View, RefreshControl, type FlatListProps } from 'react-native'
+import { FlatList, View, RefreshControl, type FlatListProps, Dimensions } from 'react-native'
 
 import ListItem from './ListItem'
+import ListItemModern from './ListItemModern'
 // import { navigations } from '@/navigation'
 import { type ListInfoItem } from '@/store/songlist/state'
 import { useLayout } from '@/utils/hooks'
@@ -12,6 +13,12 @@ import { createStyle } from '@/utils/tools'
 import Text from '@/components/common/Text'
 
 type FlatListType = FlatListProps<ListInfoItem>
+
+// 使用现代化布局
+const USE_MODERN_LAYOUT = true
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
+const ITEM_MARGIN = 12
+const COLUMN_COUNT = 2
 
 // const MAX_WIDTH = scaleSizeW(110)
 const MIN_WIDTH = scaleSizeW(110)
@@ -55,13 +62,22 @@ export default forwardRef<ListType, ListProps>(({ onRefresh, onLoadMore, onOpenD
   }
 
   const renderItem: FlatListType['renderItem'] = ({ item, index }) => (
-    <ListItem
-      item={item}
-      index={index}
-      width={rowInfo.width}
-      showSource={showSource}
-      onPress={onOpenDetail}
-    />
+    USE_MODERN_LAYOUT ? (
+      <ListItemModern
+        item={item}
+        index={index}
+        showSource={showSource}
+        onPress={onOpenDetail}
+      />
+    ) : (
+      <ListItem
+        item={item}
+        index={index}
+        width={rowInfo.width}
+        showSource={showSource}
+        onPress={onOpenDetail}
+      />
+    )
   )
   const getkey: FlatListType['keyExtractor'] = item => item.id
   // const getItemLayout: FlatListType['getItemLayout'] = (data, index) => {
@@ -150,11 +166,12 @@ export default forwardRef<ListType, ListProps>(({ onRefresh, onLoadMore, onOpenD
           ? null
           : (
               <FlatList
-                key={String(rowInfo.num)}
+                key={USE_MODERN_LAYOUT ? 'modern' : String(rowInfo.num)}
                 ref={flatListRef}
-                style={styles.list}
-                columnWrapperStyle={{ justifyContent: 'space-evenly' }}
-                numColumns={rowInfo.num}
+                style={USE_MODERN_LAYOUT ? styles.listModern : styles.list}
+                contentContainerStyle={USE_MODERN_LAYOUT ? styles.listContentModern : undefined}
+                columnWrapperStyle={USE_MODERN_LAYOUT ? styles.columnWrapperModern : { justifyContent: 'space-evenly' }}
+                numColumns={USE_MODERN_LAYOUT ? COLUMN_COUNT : rowInfo.num}
                 data={list}
                 maxToRenderPerBatch={4}
                 // updateCellsBatchingPeriod={80}
@@ -209,6 +226,17 @@ const styles = createStyle({
     flex: 1,
     paddingLeft: 10,
     paddingRight: 10,
+  },
+  listModern: {
+    flex: 1,
+  },
+  listContentModern: {
+    paddingTop: ITEM_MARGIN,
+    paddingBottom: ITEM_MARGIN * 2,
+  },
+  columnWrapperModern: {
+    paddingHorizontal: ITEM_MARGIN,
+    justifyContent: 'space-between',
   },
   footer: {
     textAlign: 'center',

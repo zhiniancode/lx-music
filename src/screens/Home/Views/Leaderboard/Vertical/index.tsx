@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { View } from 'react-native'
 import { createStyle } from '@/utils/tools'
 
@@ -17,6 +17,7 @@ import { getBoardsList } from '@/core/leaderboard'
 import { COMPONENT_IDS } from '@/config/constant'
 import { handleCollect, handlePlay } from '../listAction'
 import boardState from '@/store/leaderboard/state'
+import BoardsGrid from './BoardsGrid'
 
 
 const MAX_WIDTH = scaleSizeW(200)
@@ -29,6 +30,8 @@ export default () => {
   const boardsListRef = useRef<BoardsListType>(null)
   const headerBarRef = useRef<HeaderBarType>(null)
   const boundInfo = useRef<{ source: LX.OnlineSource, id: string | null }>({ source: 'kw', id: null })
+  const [showGrid, setShowGrid] = useState(true)
+  const [boardsList, setBoardsList] = useState<any[]>([])
   // const [width, setWidth] = useState(0)
 
   const handleBoundChange = (source: LX.OnlineSource, id: string) => {
@@ -66,17 +69,26 @@ export default () => {
   }
   const onSourceChange: HeaderBarProps['onSourceChange'] = (source) => {
     boundInfo.current.source = source
+    setShowGrid(true)
     void getBoardsList(source).then(list => {
+      setBoardsList(list)
       const id = list[0].id
       const name = list[0].name
       requestAnimationFrame(() => {
         boardsListRef.current?.setList(list, id)
         headerBarRef.current?.setBound(source, id, name ?? 'Unknown')
-        requestAnimationFrame(() => {
-          handleBoundChange(source, id)
-        })
       })
     })
+  }
+
+  const handleSelectBoard = (boardId: string, boardName: string) => {
+    setShowGrid(false)
+    headerBarRef.current?.setBound(boundInfo.current.source, boardId, boardName)
+    handleBoundChange(boundInfo.current.source, boardId)
+  }
+
+  const handleBackToGrid = () => {
+    setShowGrid(true)
   }
 
   const navigationView = () => {
@@ -105,11 +117,13 @@ export default () => {
       boundInfo.current.source = source
       boundInfo.current.id = boardId
       void getBoardsList(source).then(list => {
+        setBoardsList(list)
         const bound = list.find(l => l.id == boardId)
         boardsListRef.current?.setList(list, boardId)
         headerBarRef.current?.setBound(source, boardId, bound?.name ?? 'Unknown')
       })
-      musicListRef.current?.loadList(source, boardId)
+      // 默认显示网格，不自动加载榜单详情
+      // musicListRef.current?.loadList(source, boardId)
     })
 
     return () => {
@@ -132,8 +146,14 @@ export default () => {
       style={{ elevation: 1 }}
     >
       <View style={styles.container}>
-        <HeaderBar ref={headerBarRef} onShowBound={onShowBound} onSourceChange={onSourceChange} />
-        <MusicList ref={musicListRef} />
+        {!showGrid && (
+          <HeaderBar ref={headerBarRef} onShowBound={handleBackToGrid} onSourceChange={onSourceChange} />
+        )}
+        {showGrid ? (
+          <BoardsGrid boards={boardsList} onSelectBoard={handleSelectBoard} />
+        ) : (
+          <MusicList ref={musicListRef} />
+        )}
       </View>
     </DrawerLayoutFixed>
     // <View style={styles.container}>

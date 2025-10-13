@@ -13,11 +13,11 @@ import { useSettingValue } from '@/store/setting/hook'
 import { scaleSizeH } from '@/utils/pixelRatio'
 import { HEADER_HEIGHT } from '@/config/constant'
 import { type InitState as CommonState } from '@/store/common/state'
-import SearchTypeSelector from '@/screens/Home/Views/Search/SearchTypeSelector'
+import { setNavActiveId } from '@/core/common'
+import { navigations } from '@/navigation'
+import { COMPONENT_IDS } from '@/config/constant'
 
-const headerComponents: Partial<Record<CommonState['navActiveId'], React.ReactNode>> = {
-  nav_search: <SearchTypeSelector />,
-}
+const headerComponents: Partial<Record<CommonState['navActiveId'], React.ReactNode>> = {}
 
 
 // const LeftTitle = () => {
@@ -36,6 +36,10 @@ const LeftHeader = () => {
     global.app_event.changeMenuVisible(true)
   }
 
+  const openSearch = () => {
+    navigations.pushSearchScreen(COMPONENT_IDS.home)
+  }
+
   return (
     <View style={{
       ...styles.container,
@@ -51,10 +55,9 @@ const LeftHeader = () => {
         </TouchableOpacity>
       </View>
       {headerComponents[id] ?? null}
-
-      {/* <TouchableOpacity style={styles.btn} onPress={openSetting}>
-        <Icon style={{ ...styles.btnText, color: theme['c-font'] }} name="setting" size={styles.btnText.fontSize} />
-      </TouchableOpacity> */}
+      <TouchableOpacity style={styles.btn} onPress={openSearch}>
+        <Icon color={theme['c-font']} name="search-2" size={18} />
+      </TouchableOpacity>
     </View>
   )
 }
@@ -75,12 +78,20 @@ const RightHeader = () => {
   const openMenu = () => {
     global.app_event.changeMenuVisible(true)
   }
+
+  const openSearch = () => {
+    navigations.pushSearchScreen(COMPONENT_IDS.home)
+  }
+
   return (
     <View style={{
       ...styles.container,
       height: scaleSizeH(HEADER_HEIGHT) + statusBarHeight,
       paddingTop: statusBarHeight,
     }}>
+      <TouchableOpacity style={styles.btn} onPress={openSearch}>
+        <Icon color={theme['c-font']} name="search-2" size={18} />
+      </TouchableOpacity>
       <View style={styles.left}>
         <TouchableOpacity style={styles.titleBtn} onPress={openMenu}>
           <Text style={styles.rightTitle} size={18}>{t(id)}</Text>
@@ -90,9 +101,6 @@ const RightHeader = () => {
       <TouchableOpacity style={styles.btn} onPress={openMenu}>
         <Icon color={theme['c-font']} name="menu" size={18} />
       </TouchableOpacity>
-      {/* <TouchableOpacity style={styles.btn} onPress={openSetting}>
-        <Icon style={{ ...styles.btnText, color: theme['c-font'] }} name="setting" size={styles.btnText.fontSize} />
-      </TouchableOpacity> */}
     </View>
   )
 }
