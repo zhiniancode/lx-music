@@ -158,8 +158,13 @@ export const setPlay = async() => TrackPlayer.play()
 export const getPosition = async() => TrackPlayer.getPosition()
 export const getDuration = async() => TrackPlayer.getDuration()
 export const setStop = async() => {
-  await TrackPlayer.stop()
-  if (!isEmpty()) await TrackPlayer.skipToNext()
+  try {
+    await TrackPlayer.stop()
+    // 移除自动跳转逻辑，避免"There is no tracks left to play"错误
+    // 播放器停止后不应该自动跳到下一首，让上层逻辑控制
+  } catch (error) {
+    console.error('停止播放器时出错:', error)
+  }
 }
 export const setLoop = async(loop: boolean) => TrackPlayer.setRepeatMode(loop ? RepeatMode.Off : RepeatMode.Track)
 

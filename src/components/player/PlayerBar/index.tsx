@@ -1,22 +1,24 @@
 import { memo, useMemo, useState, useCallback, useRef } from 'react'
-import { View, Modal, TouchableOpacity, FlatList, Animated, PanResponder } from 'react-native'
+import { View, Modal, TouchableOpacity, FlatList, Animated, PanResponder, Alert } from 'react-native'
 import { useKeyboard } from '@/utils/hooks'
 
 import Pic from './components/Pic'
 import Title from './components/Title'
 // import PlayInfo from './components/PlayInfo'
 import ControlBtn from './components/ControlBtn'
-import { createStyle } from '@/utils/tools'
+import { createStyle, toast } from '@/utils/tools'
 // import { useSettingValue } from '@/store/setting/hook'
 import { useTheme } from '@/store/theme/hook'
 import { useSettingValue } from '@/store/setting/hook'
-import { usePlayMusicInfo, usePlayInfo } from '@/store/player/hook'
+import { usePlayMusicInfo, usePlayInfo, useIsPlay } from '@/store/player/hook'
 import { getListMusics, removeListMusics } from '@/core/list'
 import { useEffect } from 'react'
 import { Icon } from '@/components/common/Icon'
 import Text from '@/components/common/Text'
 import { scaleSizeW } from '@/utils/pixelRatio'
-import { playList } from '@/core/player/player'
+import { playList, pause } from '@/core/player/player'
+import { resetPlayerMusicInfo, setPlayMusicInfo } from '@/core/player/playInfo'
+import { useI18n } from '@/lang'
 
 // 可滑动的播放列表项组件
 interface SwipeableItemProps {
@@ -197,14 +199,16 @@ export default memo(({ isHome = false }: { isHome?: boolean }) => {
   const [playlist, setPlaylist] = useState<LX.Music.MusicInfo[]>([])
   const playMusicInfo = usePlayMusicInfo()
   const playInfo = usePlayInfo()
+  const isPlay = useIsPlay()
   const slideAnim = useRef(new Animated.Value(500)).current
+  const t = useI18n()
 
-  // 预加载播放列表数据
+  // 预加载播放列表数据 - 当列表ID变化或弹窗打开时重新加载
   useEffect(() => {
-    if (playInfo.playerListId) {
+    if (playInfo.playerListId && showPlaylist) {
       void getListMusics(playInfo.playerListId).then(setPlaylist)
     }
-  }, [playInfo.playerListId])
+  }, [playInfo.playerListId, showPlaylist])
 
   // 弹窗动画
   useEffect(() => {
@@ -232,12 +236,100 @@ export default memo(({ isHome = false }: { isHome?: boolean }) => {
   }, [playInfo.playerListId])
 
   const handleDeleteMusic = useCallback(async (music: LX.Music.MusicInfo) => {
-    if (!playInfo.playerListId) return
-    await removeListMusics(playInfo.playerListId, [music.id])
-    // 重新加载播放列表
-    const newList = await getListMusics(playInfo.playerListId)
-    setPlaylist(newList)
-  }, [playInfo.playerListId])
+    if (!playInfo.playerListId || !music || !music.id) return
+    
+    // 检查删除的是否是正在播放的歌曲
+    const isCurrentPlaying = playMusicInfo.musicInfo?.id === music.id
+    
+    try {
+      await removeListMusics(playInfo.playerListId, [music.id])
+      
+      // 如果删除的是正在播放的歌曲，重置播放器状态
+      if (isCurrentPlaying) {
+        resetPlayerMusicInfo()
+        setPlayMusicInfo(null, null)
+      }
+      
+      // 重新加载播放列表
+      const newList = await getListMusics(playInfo.playerListId)
+      // 确保新列表是有效的数组
+      const validList = Array.isArray(newList) ? newList.filter(item => item && item.id) : []
+      setPlaylist(validList)
+      
+      // 如果列表为空，确保播放器完全重置
+      if (validList.length === 0) {
+        resetPlayerMusicInfo()
+        setPlayMusicInfo(null, null)
+      }
+    } catch (error) {
+      console.error('Failed to delete music:', error)
+      // 发生错误时确保状态安全
+      try {
+        const currentList = await getListMusics(playInfo.playerListId)
+        const validList = Array.isArray(currentList) ? currentList.filter(item => item && item.id) : []
+        setPlaylist(validList)
+      } catch (reloadError) {
+        console.error('Failed to reload playlist after delete error:', reloadError)
+        setPlaylist([])
+      }
+    }
+  }, [playInfo.playerListId, playMusicInfo.musicInfo])
+
+  const handleClearPlaylist = useCallback(() => {
+    if (!playInfo.playerListId || playlist.length === 0) return
+    
+    Alert.alert(
+      t('playlist_clear'),
+      t('playlist_clear_confirm_tip'),
+      [
+        {
+          text: t('cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('confirm'),
+          onPress: async () => {
+            try {
+              if (playlist.length === 0) return
+              
+              // 删除所有歌曲
+              const allMusicIds = playlist
+                .filter(music => music && music.id)
+                .map(music => music.id)
+              
+              if (allMusicIds.length > 0) {
+                await removeListMusics(playInfo.playerListId!, allMusicIds)
+              }
+              
+              // 重置播放器状态，避免播放器尝试播放不存在的歌曲
+              resetPlayerMusicInfo()
+              setPlayMusicInfo(null, null)
+              
+              // 清空本地状态
+              setPlaylist([])
+              
+              // 关闭弹窗
+              setShowPlaylist(false)
+              
+              toast(t('playlist_clear_success'))
+            } catch (error) {
+              console.error('Failed to clear playlist:', error)
+              // 如果删除失败，确保状态是安全的
+              try {
+                resetPlayerMusicInfo()
+                setPlayMusicInfo(null, null)
+              } catch (resetError) {
+                console.error('Failed to reset player info:', resetError)
+              }
+              // 确保设置一个安全的空数组状态
+              setPlaylist([])
+              setShowPlaylist(false)
+            }
+          },
+        },
+      ]
+    )
+  }, [playInfo.playerListId, playlist, t])
 
   const playerComponent = useMemo(() => (
     <View style={{ 
@@ -293,9 +385,18 @@ export default memo(({ isHome = false }: { isHome?: boolean }) => {
               {/* 标题栏 */}
             <View style={{ ...styles.playlistHeader, borderBottomColor: theme['c-border-background'] }}>
               <Text size={18} style={{ fontWeight: 'bold' }}>当前播放列表 ({playlist.length})</Text>
-              <TouchableOpacity onPress={() => setShowPlaylist(false)} style={styles.closeButton}>
-                <Icon name="close" size={24} color={theme['c-font']} />
-              </TouchableOpacity>
+              <View style={styles.headerButtons}>
+                {/* 只要有歌曲就显示清空按钮 */}
+                {playlist.length > 0 && (
+                  <TouchableOpacity onPress={handleClearPlaylist} style={styles.clearButton}>
+                    <Icon name="eraser" size={20} color={theme['c-font']} />
+                    <Text size={13} style={{ marginLeft: scaleSizeW(4) }}>{t('playlist_clear')}</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={() => setShowPlaylist(false)} style={styles.closeButton}>
+                  <Icon name="close" size={24} color={theme['c-font']} />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* 播放列表 */}
@@ -309,24 +410,29 @@ export default memo(({ isHome = false }: { isHome?: boolean }) => {
                 </View>
               ) : (
                 <FlatList
-                  data={playlist}
-                  keyExtractor={(item) => item.id}
+                  data={playlist.filter(item => item && item.id)} // 过滤掉无效项
+                  keyExtractor={(item) => item?.id || `temp-${Math.random()}`} // 安全访问id
                   initialNumToRender={15}
                   maxToRenderPerBatch={10}
                   windowSize={5}
                   removeClippedSubviews={true}
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={{ paddingBottom: scaleSizeW(20) }}
-                  renderItem={({ item: music, index }) => (
-                    <SwipeablePlaylistItem
-                      music={music}
-                      index={index}
-                      isPlaying={index === playInfo.playIndex}
-                      theme={theme}
-                      onPress={() => handlePlayMusic(index)}
-                      onDelete={() => handleDeleteMusic(music)}
-                    />
-                  )}
+                  renderItem={({ item: music, index }) => {
+                    // 确保music对象存在
+                    if (!music || !music.id) return null
+                    
+                    return (
+                      <SwipeablePlaylistItem
+                        music={music}
+                        index={index}
+                        isPlaying={index === playInfo.playIndex}
+                        theme={theme}
+                        onPress={() => handlePlayMusic(index)}
+                        onDelete={() => handleDeleteMusic(music)}
+                      />
+                    )
+                  }}
                 />
               )}
             </View>
@@ -402,6 +508,19 @@ const styles = createStyle({
     paddingHorizontal: scaleSizeW(20),
     paddingVertical: scaleSizeW(16),
     borderBottomWidth: 1,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scaleSizeW(12),
+  },
+  clearButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: scaleSizeW(6),
+    paddingHorizontal: scaleSizeW(10),
+    borderRadius: scaleSizeW(6),
+    backgroundColor: 'rgba(255, 68, 68, 0.1)',
   },
   closeButton: {
     padding: scaleSizeW(4),

@@ -1,24 +1,47 @@
-import { createList, setTempList } from '@/core/list'
+import { createList, setTempList, addListMusics, getListMusics } from '@/core/list'
 import { playList } from '@/core/player/player'
 import { getListDetail, getListDetailAll } from '@/core/leaderboard'
 import { LIST_IDS } from '@/config/constant'
 import listState from '@/store/list/state'
 import syncSourceList from '@/core/syncSourceList'
 import { confirmDialog, toMD5, toast } from '@/utils/tools'
+import playerState from '@/store/player/state'
 
 
 const getListId = (id: string) => `board__${id}`
 
-export const handlePlay = async(id: string, list?: LX.Music.MusicInfoOnline[], index = 0) => {
+export const handlePlay = async(id: string, list?: LX.Music.MusicInfoOnline[], index = 0, singleMode = false) => {
   let isPlayingList = false
   // console.log(list)
   const listId = getListId(id)
   if (!list?.length) list = (await getListDetail(id, 1)).list
+  
+  // 如果是单首模式且当前正在播放临时列表，则添加到现有列表
+  if (singleMode && list?.length && playerState.playInfo.playerListId === LIST_IDS.TEMP) {
+    // 获取添加前的列表长度
+    const currentList = await getListMusics(LIST_IDS.TEMP)
+    const currentLength = currentList.length
+    
+    // 添加歌曲到现有临时播放列表
+    await addListMusics(LIST_IDS.TEMP, list as LX.Music.MusicInfo[], 'bottom')
+    
+    // 播放新添加的歌曲（索引 = 原列表长度 + 新歌曲在传入列表中的索引）
+    const newSongIndex = currentLength + index
+    void playList(LIST_IDS.TEMP, newSongIndex)
+    return
+  }
+  
   if (list?.length) {
     await setTempList(listId, [...list])
     void playList(LIST_IDS.TEMP, index)
     isPlayingList = true
   }
+  
+  // 如果是单首模式，不获取完整列表
+  if (singleMode) {
+    return
+  }
+  
   const fullList = await getListDetailAll(id)
   if (!fullList.length) return
   if (isPlayingList) {

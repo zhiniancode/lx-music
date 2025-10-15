@@ -9,6 +9,10 @@ import { Icon } from '@/components/common/Icon'
 import { scaleSizeW } from '@/utils/pixelRatio'
 import { handlePlay as playFromBoard } from '@/screens/Home/Views/Leaderboard/listAction'
 import MusicAddModal, { type MusicAddModalType } from '@/components/MusicAddModal'
+import { addListMusics, getListMusics } from '@/core/list'
+import { playList } from '@/core/player/player'
+import { LIST_IDS } from '@/config/constant'
+import playerState from '@/store/player/state'
 
 // 模拟数据（用于测试）
 const MOCK_DATA_ENABLED = false // 设为 true 启用模拟数据
@@ -24,10 +28,11 @@ interface MusicItemProps {
 
 const MusicItem = ({ music, index, theme, onPress, onLongPress }: MusicItemProps) => {
   const scaleAnim = useState(new Animated.Value(1))[0]
+  const isTopThree = index < 3
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.98,
+      toValue: 0.96,
       useNativeDriver: true,
     }).start()
   }
@@ -39,41 +44,51 @@ const MusicItem = ({ music, index, theme, onPress, onLongPress }: MusicItemProps
     }).start()
   }
 
+  // 前三名的特殊颜色
+  const getRankColor = () => {
+    if (index === 0) return '#FFD700' // 金色
+    if (index === 1) return '#C0C0C0' // 银色  
+    if (index === 2) return '#CD7F32' // 铜色
+    return theme['c-font']
+  }
+
+  const getItemStyle = () => {
+    // 统一所有项目的样式
+    return { ...styles.musicItem, borderBottomColor: theme['c-border-background'] }
+  }
+
   return (
     <Animated.View 
       style={{ transform: [{ scale: scaleAnim }] }}
     >
       <TouchableOpacity 
-        style={{ ...styles.musicItem, borderBottomColor: theme['c-border-background'] }}
-        activeOpacity={0.9}
+        style={getItemStyle()}
+        activeOpacity={0.8}
         onPress={onPress}
         onLongPress={onLongPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
         <View style={styles.musicRank}>
-          <View style={[
-            styles.rankBadge,
-            { backgroundColor: index < 3 ? theme['c-primary-alpha-100'] : 'transparent' }
-          ]}>
-            <Text 
-              style={{ 
-                ...styles.rankText, 
-                color: index < 3 ? theme['c-primary-font'] : theme['c-font'],
-                fontWeight: 'bold',
-              }}
-            >
-              {index + 1}
-            </Text>
-          </View>
+          <Text 
+            style={{ 
+              ...styles.rankText, 
+              color: getRankColor(),
+              fontWeight: 'bold',
+            }}
+          >
+            {index + 1}
+          </Text>
         </View>
         <View style={styles.musicInfo}>
           <Text numberOfLines={1} style={{ fontWeight: 'bold' }}>{music.name}</Text>
           <Text numberOfLines={1} size={12} color={theme['c-font-label']}>{music.singer}</Text>
         </View>
-        <View style={styles.playIconContainer}>
-          <Icon name="play-outline" size={22} color={theme['c-primary-font']} />
-        </View>
+        {isTopThree && (
+          <View style={styles.hotBadge}>
+            <Text size={9} style={{ color: '#FF5722', fontWeight: 'bold' }}>HOT</Text>
+          </View>
+        )}
       </TouchableOpacity>
     </Animated.View>
   )
@@ -125,7 +140,7 @@ export default () => {
       console.log('🏠 [主页] 获取到排行榜列表:', boards.length, '个')
       console.log('🏠 [主页] 排行榜详情:', JSON.stringify(boards))
       
-      if (boards && boards.length >= 2) {
+      if (boards && boards.length >= 1) {
         // 第一个榜单作为每日推荐（飙升榜）
         const firstBoardId = boards[0].id
         console.log('🏠 [主页] 加载每日推荐榜单 ID:', firstBoardId)
@@ -138,29 +153,16 @@ export default () => {
           setCurrentBoardIds(prev => ({ ...prev, daily: firstBoardId }))
         }
         
-        // 第二个榜单作为本周最热（新歌榜）
-        const secondBoardId = boards[1].id
-        console.log('🏠 [主页] 加载本周最热榜单 ID:', secondBoardId)
+        // 使用热歌榜作为本周最热
+        const hotBoardId = 'wy__3778678'
+        console.log('🏠 [主页] 加载本周最热榜单（热歌榜）ID:', hotBoardId)
         
-        const hotDetail = await getListDetail(secondBoardId, 1)
+        const hotDetail = await getListDetail(hotBoardId, 1)
         console.log('🏠 [主页] 本周最热歌曲数:', hotDetail?.list?.length || 0)
         
         if (hotDetail && hotDetail.list && hotDetail.list.length > 0) {
-          setHotMusic(hotDetail.list.slice(0, 20))
-          setCurrentBoardIds(prev => ({ ...prev, hot: secondBoardId }))
-        }
-      } else if (boards && boards.length === 1) {
-        // 如果只有一个榜单，同时用于推荐和最热
-        const boardId = boards[0].id
-        console.log('🏠 [主页] 只有一个榜单，ID:', boardId)
-        
-        const detail = await getListDetail(boardId, 1)
-        console.log('🏠 [主页] 获取到歌曲数:', detail?.list?.length || 0)
-        
-        if (detail && detail.list && detail.list.length > 0) {
-          setDailyRecommend(detail.list.slice(0, 15)) // 前15首作为推荐
-          setHotMusic(detail.list.slice(15, 35)) // 15-35首作为最热
-          setCurrentBoardIds({ daily: boardId, hot: boardId })
+          setHotMusic(hotDetail.list.slice(0, 30))
+          setCurrentBoardIds(prev => ({ ...prev, hot: hotBoardId }))
         }
       } else {
         console.warn('🏠 [主页] 没有可用的榜单数据')
@@ -200,21 +202,103 @@ export default () => {
     setShowDailyModal(true)
   }, [dailyRecommend])
 
-  // 播放每日推荐中的某首歌
+  // 播放每日推荐中的某首歌（添加到播放列表）
   const handlePlayDailySong = useCallback(async (index: number) => {
-    if (!dailyRecommend.length || !currentBoardIds.daily) return
-    console.log('🎵 播放每日推荐歌曲:', dailyRecommend[index].name)
-    setShowDailyModal(false)
-    await playFromBoard(currentBoardIds.daily, dailyRecommend, index)
+    if (!dailyRecommend.length) return
+    
+    const music = dailyRecommend[index]
+    if (!music || !music.id || !music.name) {
+      console.error('🎵 每日推荐音乐信息无效:', music)
+      return
+    }
+    
+    // 检查是否正在播放同一首歌曲
+    const currentMusic = playerState.playMusicInfo.musicInfo
+    if (currentMusic && currentMusic.id === music.id && playerState.isPlay) {
+      console.log('🎵 已在播放该歌曲，无需重复操作:', music.name)
+      setShowDailyModal(false)
+      return
+    }
+    
+    try {
+      console.log('🎵 播放每日推荐歌曲:', music.name)
+      setShowDailyModal(false)
+      
+      // 检查歌曲是否已在播放列表中
+      const currentList = await getListMusics(LIST_IDS.TEMP)
+      const existingIndex = currentList.findIndex(item => item.id === music.id)
+      
+      if (existingIndex !== -1) {
+        // 如果歌曲已在播放列表中，直接播放
+        console.log('🎵 歌曲已在播放列表中，直接播放:', music.name, '位置:', existingIndex)
+        void playList(LIST_IDS.TEMP, existingIndex)
+      } else {
+        // 歌曲不在播放列表中，添加并播放
+        const currentLength = currentList.length
+        await addListMusics(LIST_IDS.TEMP, [music as LX.Music.MusicInfo], 'bottom')
+        const newSongIndex = currentLength
+        void playList(LIST_IDS.TEMP, newSongIndex)
+        console.log('🎵 每日推荐歌曲已添加到播放列表:', music.name, '位置:', newSongIndex)
+      }
+    } catch (error) {
+      console.error('🎵 播放每日推荐歌曲失败:', error)
+      // 如果添加到播放列表失败，尝试使用原来的方式
+      if (currentBoardIds.daily) {
+        try {
+          await playFromBoard(currentBoardIds.daily, [music], 0, true)
+        } catch (fallbackError) {
+          console.error('🎵 每日推荐降级播放也失败:', fallbackError)
+        }
+      }
+    }
   }, [dailyRecommend, currentBoardIds.daily])
 
-  // 播放单曲
+  // 播放单曲（添加到播放列表并播放）
   const handlePlaySong = useCallback(async (music: LX.Music.MusicInfoOnline, index: number) => {
-    console.log('🎵 播放歌曲:', music.name)
-    if (currentBoardIds.hot) {
-      await playFromBoard(currentBoardIds.hot, hotMusic, index)
+    try {
+      console.log('🎵 播放歌曲:', music.name)
+      
+      // 检查音乐信息是否有效
+      if (!music || !music.id || !music.name) {
+        console.error('🎵 音乐信息无效:', music)
+        return
+      }
+      
+      // 检查是否正在播放同一首歌曲
+      const currentMusic = playerState.playMusicInfo.musicInfo
+      if (currentMusic && currentMusic.id === music.id && playerState.isPlay) {
+        console.log('🎵 已在播放该歌曲，无需重复操作:', music.name)
+        return
+      }
+      
+      // 检查歌曲是否已在播放列表中
+      const currentList = await getListMusics(LIST_IDS.TEMP)
+      const existingIndex = currentList.findIndex(item => item.id === music.id)
+      
+      if (existingIndex !== -1) {
+        // 如果歌曲已在播放列表中，直接播放
+        console.log('🎵 歌曲已在播放列表中，直接播放:', music.name, '位置:', existingIndex)
+        void playList(LIST_IDS.TEMP, existingIndex)
+      } else {
+        // 歌曲不在播放列表中，添加并播放
+        const currentLength = currentList.length
+        await addListMusics(LIST_IDS.TEMP, [music as LX.Music.MusicInfo], 'bottom')
+        const newSongIndex = currentLength
+        void playList(LIST_IDS.TEMP, newSongIndex)
+        console.log('🎵 歌曲已添加到播放列表:', music.name, '位置:', newSongIndex)
+      }
+    } catch (error) {
+      console.error('🎵 播放歌曲失败:', error)
+      // 如果添加到播放列表失败，尝试使用原来的方式
+      if (currentBoardIds.hot) {
+        try {
+          await playFromBoard(currentBoardIds.hot, [music], 0, true)
+        } catch (fallbackError) {
+          console.error('🎵 降级播放也失败:', fallbackError)
+        }
+      }
     }
-  }, [hotMusic, currentBoardIds.hot])
+  }, [currentBoardIds.hot])
 
   // 长按显示菜单
   const handleLongPress = useCallback((music: LX.Music.MusicInfoOnline, listId: string) => {
@@ -301,11 +385,20 @@ export default () => {
         {!loading && !error && hotMusic.length > 0 && (
           <View style={styles.hotMusicSection}>
             <View style={styles.sectionHeader}>
-              <Icon name="leaderboard" size={22} color={theme['c-primary-font']} />
-              <Text size={18} style={{ ...styles.sectionTitle, fontWeight: 'bold' }}>本周最热音乐</Text>
+              <View style={styles.titleContainer}>
+                <Icon name="leaderboard" size={24} color="#FF5722" />
+                <Text size={20} style={styles.hotMusicTitle}>
+                  本周最热音乐
+                </Text>
+                <View style={styles.hotBadgeTitle}>
+                  <Text size={10} style={styles.hotBadgeText}>HOT</Text>
+                </View>
+              </View>
             </View>
-            <View style={{ ...styles.musicList, backgroundColor: theme['c-primary-light-100'] }}>
-              {hotMusic.map(renderMusicItem)}
+            <View style={styles.hotMusicContainer}>
+              <View style={styles.musicList}>
+                {hotMusic.map(renderMusicItem)}
+              </View>            
             </View>
           </View>
         )}
@@ -376,7 +469,6 @@ export default () => {
                       {music.singer}
                     </Text>
                   </View>
-                  <Icon name="play-outline" size={20} color={theme['c-primary-font']} />
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -459,47 +551,83 @@ const styles = createStyle({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: scaleSizeW(18),
     paddingHorizontal: scaleSizeW(4),
   },
-  sectionTitle: {
-    marginLeft: scaleSizeW(10),
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  hotMusicTitle: {
+    marginLeft: scaleSizeW(8),
+    fontWeight: 'bold',
+    color: '#2E2E2E',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  hotBadgeTitle: {
+    backgroundColor: '#FF5722',
+    paddingHorizontal: scaleSizeW(6),
+    paddingVertical: scaleSizeW(2),
+    borderRadius: scaleSizeW(8),
+    marginLeft: scaleSizeW(8),
+  },
+  hotBadgeText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: scaleSizeW(8),
+  },
+  songCount: {
+    fontWeight: '600',
+  },
+  hotMusicContainer: {
+    position: 'relative',
+    borderRadius: scaleSizeW(16),
+    overflow: 'hidden',
+    backgroundColor: 'transparent',
   },
   musicList: {
-    borderRadius: scaleSizeW(12),
+    backgroundColor: 'transparent',
+    borderRadius: scaleSizeW(16),
     overflow: 'hidden',
+    paddingVertical: scaleSizeW(8),
+    paddingHorizontal: scaleSizeW(8),
   },
   musicItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: scaleSizeW(14),
-    paddingHorizontal: scaleSizeW(12),
-    borderBottomWidth: 0.5,
-    borderRadius: scaleSizeW(8),
-    marginBottom: scaleSizeW(2),
+    paddingHorizontal: scaleSizeW(16),
+    marginVertical: scaleSizeW(3),
+    backgroundColor: 'transparent',
+    borderRadius: scaleSizeW(12),
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
   },
   musicRank: {
     width: scaleSizeW(40),
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rankBadge: {
-    width: scaleSizeW(32),
-    height: scaleSizeW(32),
-    borderRadius: scaleSizeW(16),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   rankText: {
-    fontSize: scaleSizeW(14),
+    fontSize: scaleSizeW(16),
   },
   musicInfo: {
     flex: 1,
     marginLeft: scaleSizeW(12),
     marginRight: scaleSizeW(10),
   },
-  playIconContainer: {
-    padding: scaleSizeW(8),
+  hotBadge: {
+    backgroundColor: 'rgba(255, 87, 34, 0.12)',
+    paddingHorizontal: scaleSizeW(8),
+    paddingVertical: scaleSizeW(3),
+    borderRadius: scaleSizeW(8),
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 87, 34, 0.2)',
   },
   loadingContainer: {
     alignItems: 'center',
