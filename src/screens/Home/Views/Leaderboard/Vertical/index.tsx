@@ -33,6 +33,7 @@ export default () => {
   const [showGrid, setShowGrid] = useState(true)
   const [boardsList, setBoardsList] = useState<any[]>([])
   const [pendingLoadId, setPendingLoadId] = useState<string | null>(null)
+  const [currentSource, setCurrentSource] = useState<LX.OnlineSource>('wy')
   // const [width, setWidth] = useState(0)
 
   const handleBoundChange = useCallback((source: LX.OnlineSource, id: string) => {
@@ -82,6 +83,7 @@ export default () => {
   }
   const onSourceChange: HeaderBarProps['onSourceChange'] = (source) => {
     boundInfo.current.source = source
+    setCurrentSource(source)
     setShowGrid(true)
     void getBoardsList(source).then(list => {
       setBoardsList(list)
@@ -98,13 +100,22 @@ export default () => {
     })
   }
 
-  const handleSelectBoard = (boardId: string, boardName: string) => {
+  const handleSelectBoard = (boardId: string, boardName: string, source: LX.OnlineSource) => {
     // 先保存当前要加载的榜单信息
     boundInfo.current.id = boardId
+    boundInfo.current.source = source
+    setCurrentSource(source)
     
     // 切换到详情视图
     setShowGrid(false)
-    headerBarRef.current?.setBound(boundInfo.current.source, boardId, boardName)
+    
+    // 使用 requestAnimationFrame 确保 HeaderBar 渲染后再设置
+    requestAnimationFrame(() => {
+      headerBarRef.current?.setBound(source, boardId, boardName)
+    })
+    
+    // 保存音源和榜单设置
+    void saveLeaderboardSetting({ source, boardId })
     
     // 设置待加载的榜单 ID，会在 useEffect 中处理
     setPendingLoadId(boardId)
@@ -177,6 +188,7 @@ export default () => {
       
       boundInfo.current.source = finalSource
       boundInfo.current.id = finalBoardId
+      setCurrentSource(finalSource)
       void getBoardsList(finalSource).then(list => {
         setBoardsList(list)
         const bound = list.find(l => l.id == finalBoardId)
@@ -210,23 +222,28 @@ export default () => {
     >
       <View style={[styles.container, { backgroundColor: theme['c-content-background'] }]}>
         {!showGrid && (
-          <HeaderBar ref={headerBarRef} onShowBound={handleBackToGrid} onSourceChange={onSourceChange} />
+          <HeaderBar 
+            ref={headerBarRef} 
+            onShowBound={handleBackToGrid} 
+            onSourceChange={onSourceChange}
+            currentSource={currentSource}
+          />
         )}
         {showGrid ? (
           <BoardsGrid 
             boards={boardsList} 
             onSelectBoard={handleSelectBoard}
-            currentSource={boundInfo.current.source}
+            currentSource={currentSource}
             onSourceChange={onSourceChange}
           />
         ) : (
           <View style={styles.musicListWrapper}>
             {/* 音乐列表背景装饰 */}
             <View style={StyleSheet.absoluteFillObject}>
-              <View style={[styles.musicListGradient1, { backgroundColor: boundInfo.current.source === 'wy' ? 'rgba(255, 107, 157, 0.05)' : 'rgba(79, 195, 247, 0.05)' }]} />
-              <View style={[styles.musicListGradient2, { backgroundColor: boundInfo.current.source === 'wy' ? 'rgba(139, 127, 255, 0.04)' : 'rgba(129, 199, 132, 0.04)' }]} />
-              <View style={[styles.musicListDecor1, { backgroundColor: boundInfo.current.source === 'wy' ? 'rgba(255, 107, 157, 0.08)' : 'rgba(79, 195, 247, 0.08)' }]} />
-              <View style={[styles.musicListDecor2, { backgroundColor: boundInfo.current.source === 'wy' ? 'rgba(139, 127, 255, 0.06)' : 'rgba(129, 199, 132, 0.06)' }]} />
+              <View style={[styles.musicListGradient1, { backgroundColor: currentSource === 'wy' ? 'rgba(255, 107, 157, 0.05)' : 'rgba(79, 195, 247, 0.05)' }]} />
+              <View style={[styles.musicListGradient2, { backgroundColor: currentSource === 'wy' ? 'rgba(139, 127, 255, 0.04)' : 'rgba(129, 199, 132, 0.04)' }]} />
+              <View style={[styles.musicListDecor1, { backgroundColor: currentSource === 'wy' ? 'rgba(255, 107, 157, 0.08)' : 'rgba(79, 195, 247, 0.08)' }]} />
+              <View style={[styles.musicListDecor2, { backgroundColor: currentSource === 'wy' ? 'rgba(139, 127, 255, 0.06)' : 'rgba(129, 199, 132, 0.06)' }]} />
             </View>
             <MusicList ref={musicListRef} />
           </View>

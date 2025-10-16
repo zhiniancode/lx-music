@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef } from 'react'
+import { forwardRef, useImperativeHandle, useRef, useEffect } from 'react'
 import { View } from 'react-native'
 
 // import { useGetter, useDispatch } from '@/store'
@@ -13,10 +13,12 @@ import { useTheme } from '@/store/theme/hook'
 // import { BorderWidths } from '@/theme'
 import ActiveListName, { type ActiveListNameType } from './ActiveListName'
 import { BorderWidths } from '@/theme'
+import leaderboardState from '@/store/leaderboard/state'
 
 export interface HeaderBarProps {
   onShowBound: () => void
   onSourceChange: (source: LX.OnlineSource) => void
+  currentSource: LX.OnlineSource
 }
 
 export interface HeaderBarType {
@@ -24,10 +26,17 @@ export interface HeaderBarType {
 }
 
 
-export default forwardRef<HeaderBarType, HeaderBarProps>(({ onShowBound, onSourceChange }, ref) => {
+export default forwardRef<HeaderBarType, HeaderBarProps>(({ onShowBound, onSourceChange, currentSource }, ref) => {
   const activeListNameRef = useRef<ActiveListNameType>(null)
   const sourceSelectorRef = useRef<SourceSelectorType>(null)
   const theme = useTheme()
+
+  // 组件挂载时初始化音源列表
+  useEffect(() => {
+    if (sourceSelectorRef.current && leaderboardState.sources.length > 0) {
+      sourceSelectorRef.current.setSource(currentSource)
+    }
+  }, [currentSource])
 
   useImperativeHandle(ref, () => ({
     setBound(source, id, name) {

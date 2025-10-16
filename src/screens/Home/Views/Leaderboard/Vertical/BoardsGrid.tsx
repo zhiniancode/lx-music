@@ -152,7 +152,7 @@ const BoardCard = memo(({ board, index, onPress }: BoardCardProps) => {
 
 interface BoardsGridProps {
   boards: BoardItem[]
-  onSelectBoard: (boardId: string, boardName: string) => void
+  onSelectBoard: (boardId: string, boardName: string, source: LX.OnlineSource) => void
   currentSource?: LX.OnlineSource
   onSourceChange?: (source: LX.OnlineSource) => void
 }
@@ -212,9 +212,9 @@ const BoardsGrid = memo(({ boards, onSelectBoard, currentSource = 'wy', onSource
   const handlePress = useCallback((boardId: string) => {
     const board = boards.find(b => b.id === boardId)
     if (board) {
-      onSelectBoard(boardId, board.name)
+      onSelectBoard(boardId, board.name, currentSource)
     }
-  }, [boards, onSelectBoard])
+  }, [boards, onSelectBoard, currentSource])
 
   const handleSourceToggle = useCallback(() => {
     if (onSourceChange) {
