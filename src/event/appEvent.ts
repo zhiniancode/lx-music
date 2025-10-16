@@ -163,6 +163,48 @@ export class AppEvent extends Event {
   }
 
   /**
+   * 显示搜索弹窗
+   */
+  showSearchModal() {
+    this.emit('showSearchModal')
+  }
+
+  /**
+   * 执行搜索
+   */
+  performSearch(keyword: string, source: any, type: any) {
+    this.emit('performSearch', keyword, source, type)
+  }
+
+  /**
+   * 搜索文本改变
+   */
+  searchTextChanged(text: string, source: any, type: any) {
+    this.emit('searchTextChanged', text, source, type)
+  }
+
+  /**
+   * 搜索输入框聚焦
+   */
+  searchInputFocused() {
+    this.emit('searchInputFocused')
+  }
+
+  /**
+   * 搜索输入框失焦
+   */
+  searchInputBlurred() {
+    this.emit('searchInputBlurred')
+  }
+
+  /**
+   * 关闭搜索视图
+   */
+  searchClosed() {
+    this.emit('searchClosed')
+  }
+
+  /**
    * 搜索类型改变事件
    * @param type
    */

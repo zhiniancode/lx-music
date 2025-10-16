@@ -25,7 +25,8 @@ const API_KEY = \`lxmusic\`
 
 // 音质配置(key为音源名称,不要乱填.如果你账号为VIP可以填写到hires)
 // 全部的支持值: ['128k', '320k', 'flac', 'flac24bit']
-const MUSIC_QUALITY = JSON.parse('{"kw":["128k","320k","flac","flac24bit"],"kg":["128k","320k","flac","flac24bit"],"tx":["128k","320k","flac","flac24bit"],"wy":["128k","320k","flac","flac24bit"],"mg":["128k","320k","flac","flac24bit"]}')
+// 已移除酷我(kw)、酷狗(kg)、咪咕(mg)音源
+const MUSIC_QUALITY = JSON.parse('{"tx":["128k","320k","flac","flac24bit"],"wy":["128k","320k","flac","flac24bit"]}')
 
 // 音源配置(默认为自动生成,可以修改为手动)
 const MUSIC_SOURCE = Object.keys(MUSIC_QUALITY)
@@ -313,5 +314,124 @@ send(EVENT_NAMES.inited, {
   sources: musicSources
 })`
 
+export const HUIBQ_USER_API_SCRIPT = `/*!
+ * @name Huibq_lxmusic源
+ * @description Github搜索"洛雪音乐音源"，禁止批量下载！
+ * @version v1.2.0
+ * @author Huibq
+ */
+
+const DEV_ENABLE = false
+const API_URL = 'https://lxmusicapi.onrender.com'
+const API_KEY = 'share-v2'
+
+const MUSIC_QUALITY = {
+  // kw: ['128k', '320k'],  // 已移除酷我音乐
+  // kg: ['128k', '320k'],  // 已移除酷狗音乐
+  tx: ['128k', '320k'],
+  wy: ['128k', '320k'],
+  // mg: ['128k', '320k'],  // 已移除咪咕音乐
+}
+
+const MUSIC_SOURCE = Object.keys(MUSIC_QUALITY)
+
+const { EVENT_NAMES, request, on, send, utils, env, version } = globalThis.lx
+
+const httpFetch = (url, options = { method: 'GET' }) => {
+  return new Promise((resolve, reject) => {
+    request(url, options, (err, resp) => {
+      if (err) return reject(err)
+      resolve(resp)
+    })
+  })
+}
+
+const handleGetMusicUrl = async (source, musicInfo, quality) => {
+  const songId = musicInfo.hash ?? musicInfo.songmid
+  const request = await httpFetch(\`\${API_URL}/url/\${source}/\${songId}/\${quality}\`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': \`\${env ? \`lx-music-\${env}/\${version}\` : \`lx-music-request/\${version}\`}\`,
+      'X-Request-Key': API_KEY,
+    },
+  })
+
+  const { body } = request
+  if (!body || isNaN(Number(body.code))) throw new Error('unknow error')
+
+  switch (body.code) {
+    case 0:
+      return body.url
+    case 1:
+      throw new Error('block ip')
+    case 2:
+      throw new Error('get music url failed')
+    case 4:
+      throw new Error('internal server error')
+    case 5:
+      throw new Error('too many requests')
+    case 6:
+      throw new Error('param error')
+    default:
+      throw new Error(body.msg ?? 'unknow error')
+  }
+}
+
+const musicSources = {}
+MUSIC_SOURCE.forEach(item => {
+  musicSources[item] = {
+    name: item,
+    type: 'music',
+    actions: ['musicUrl'],
+    qualitys: MUSIC_QUALITY[item],
+  }
+})
+
+on(EVENT_NAMES.request, ({ action, source, info }) => {
+  switch (action) {
+    case 'musicUrl':
+      if (env != 'mobile') {
+        console.group(\`Handle Action(musicUrl)\`)
+        console.log('source', source)
+        console.log('quality', info.type)
+        console.log('musicInfo', info.musicInfo)
+        console.groupEnd()
+      } else {
+        console.log(\`Handle Action(musicUrl)\`)
+        console.log('source', source)
+        console.log('quality', info.type)
+        console.log('musicInfo', info.musicInfo)
+      }
+      return handleGetMusicUrl(source, info.musicInfo, info.type)
+        .then(data => Promise.resolve(data))
+        .catch(err => Promise.reject(err))
+    default:
+      console.error(\`action(\${action}) not support\`)
+      return Promise.reject('action not support')
+  }
+})
+
+send(EVENT_NAMES.inited, {
+  status: true,
+  openDevTools: DEV_ENABLE,
+  sources: musicSources
+})`
+
 export const DEFAULT_USER_API_ID = 'default_lxmusic_api'
+export const HUIBQ_USER_API_ID = 'huibq_lxmusic_api'
+
+// 预置API源列表（第一个将作为默认源）
+export const PRESET_USER_APIS = [
+  {
+    id: HUIBQ_USER_API_ID,
+    name: 'Huibq_lxmusic源',
+    script: HUIBQ_USER_API_SCRIPT
+  },
+  {
+    id: DEFAULT_USER_API_ID,
+    name: '微信公众号：洛雪音乐',
+    script: DEFAULT_USER_API_SCRIPT
+  }
+]
 

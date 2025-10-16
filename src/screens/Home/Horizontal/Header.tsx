@@ -104,6 +104,7 @@ const styles = createStyle({
     alignItems: 'center',
     // backgroundColor: 'rgba(0,0,0,0.1)',
     zIndex: 10,
+    elevation: 10,
   },
   left: {
     flex: 1,

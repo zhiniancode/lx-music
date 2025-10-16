@@ -32,3 +32,14 @@ if (process.env.NODE_ENV !== 'development') {
     console.log('+++++', errorString, '+++++')
   }, false)
 }
+
+// 处理未捕获的 Promise rejection（开发和生产环境都需要）
+global.HermesInternal?.enablePromiseRejectionTracker?.(
+  (id, rejection) => {
+    // 记录错误但不显示弹窗，避免干扰用户
+    console.warn('未处理的 Promise rejection (id: ' + id + '):', rejection?.message || rejection)
+    if (rejection?.stack) {
+      log.error(rejection.stack)
+    }
+  }
+)

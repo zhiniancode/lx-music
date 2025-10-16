@@ -129,20 +129,20 @@ export const MUSIC_TOGGLE_MODE_LIST = [
 
 export const DEFAULT_SETTING = {
   leaderboard: {
-    source: 'kw' as LX.OnlineSource,
-    boardId: 'kw__16',
+    source: 'wy' as LX.OnlineSource,  // 改为网易云音乐
+    boardId: 'wy__16',  // 对应网易云音乐排行榜ID
   },
 
   songList: {
-    source: 'kw' as LX.OnlineSource,
+    source: 'wy' as LX.OnlineSource,  // 改为网易云音乐
     sortId: 'new',
     tagName: '',
     tagId: '',
   },
 
   search: {
-    temp_source: 'kw' as LX.OnlineSource,
-    source: 'all' as LX.OnlineSource | 'all',
+    temp_source: 'wy' as LX.OnlineSource,
+    source: 'wy' as LX.OnlineSource | 'all',  // 默认网易云（质量最好，优先原唱）
     type: 'music' as 'music' | 'songlist',
   },
 

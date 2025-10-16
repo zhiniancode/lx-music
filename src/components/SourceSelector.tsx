@@ -32,7 +32,7 @@ export const useSourceListI18n = (list: Sources) => {
 const Component = <S extends Sources>({ fontSize = 15, center, onSourceChange }: SourceSelectorProps<S>, ref: Ref<SourceSelectorType<S>>) => {
   const sourceNameType = useSettingValue('common.sourceNameType')
   const [list, setList] = useState([] as unknown as S)
-  const [source, setSource] = useState<S[number]>('kw')
+  const [source, setSource] = useState<S[number]>('wy')
   const t = useI18n()
 
   useImperativeHandle(ref, () => ({

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { View, ScrollView, TouchableOpacity, ImageBackground, RefreshControl, Animated, Modal } from 'react-native'
-import { createStyle } from '@/utils/tools'
+import { createStyle, toast } from '@/utils/tools'
 import { useTheme } from '@/store/theme/hook'
 import { useI18n } from '@/lang'
 import Text from '@/components/common/Text'
@@ -13,6 +13,7 @@ import { addListMusics, getListMusics } from '@/core/list'
 import { playList } from '@/core/player/player'
 import { LIST_IDS } from '@/config/constant'
 import playerState from '@/store/player/state'
+import { getMultiPlatformHotMusic } from '@/utils/hotMusicMerge'
 
 // 模拟数据（用于测试）
 const MOCK_DATA_ENABLED = false // 设为 true 启用模拟数据
@@ -135,38 +136,66 @@ export default () => {
         return
       }
       
-      // 获取排行榜列表 - 网易云音乐
-      const boards = await getBoardsList('wy')
-      console.log('🏠 [主页] 获取到排行榜列表:', boards.length, '个')
-      console.log('🏠 [主页] 排行榜详情:', JSON.stringify(boards))
+      // 获取每日推荐：使用多平台新歌榜（网易云 + QQ音乐）
+      console.log('🏠 [主页] 开始获取多平台每日推荐（新歌榜）...')
+      const dailyMusic = await getMultiPlatformHotMusic(
+        ['wy', 'tx'], // 网易云和QQ音乐
+        getListDetail,
+        {
+          wy: 'wy__3779629', // 网易云新歌榜
+          tx: 'tx__27',      // QQ音乐新歌榜
+        },
+        30 // 每个平台取前30首
+      )
       
-      if (boards && boards.length >= 1) {
-        // 第一个榜单作为每日推荐（飙升榜）
-        const firstBoardId = boards[0].id
-        console.log('🏠 [主页] 加载每日推荐榜单 ID:', firstBoardId)
-        
-        const dailyDetail = await getListDetail(firstBoardId, 1)
-        console.log('🏠 [主页] 每日推荐歌曲数:', dailyDetail?.list?.length || 0)
-        
-        if (dailyDetail && dailyDetail.list && dailyDetail.list.length > 0) {
-          setDailyRecommend(dailyDetail.list) // 显示所有推荐歌曲
-          setCurrentBoardIds(prev => ({ ...prev, daily: firstBoardId }))
-        }
-        
-        // 使用热歌榜作为本周最热
-        const hotBoardId = 'wy__3778678'
-        console.log('🏠 [主页] 加载本周最热榜单（热歌榜）ID:', hotBoardId)
-        
-        const hotDetail = await getListDetail(hotBoardId, 1)
-        console.log('🏠 [主页] 本周最热歌曲数:', hotDetail?.list?.length || 0)
-        
-        if (hotDetail && hotDetail.list && hotDetail.list.length > 0) {
-          setHotMusic(hotDetail.list.slice(0, 30))
-          setCurrentBoardIds(prev => ({ ...prev, hot: hotBoardId }))
-        }
+      if (dailyMusic && dailyMusic.length > 0) {
+        setDailyRecommend(dailyMusic.slice(0, 30)) // 取合并后的前30首
+        setCurrentBoardIds(prev => ({ ...prev, daily: 'multi_platform_new' }))
+        console.log('🏠 [主页] 每日推荐加载完成，共', dailyMusic.length, '首（新歌多平台合并）')
       } else {
-        console.warn('🏠 [主页] 没有可用的榜单数据')
-        setError('没有可用的榜单数据')
+        console.warn('🏠 [主页] 多平台每日推荐获取失败，尝试使用单一平台...')
+        // 降级方案：如果多平台获取失败，使用网易云新歌榜
+        try {
+          const newSongBoardId = 'wy__3779629'
+          const dailyDetail = await getListDetail(newSongBoardId, 1)
+          if (dailyDetail && dailyDetail.list && dailyDetail.list.length > 0) {
+            setDailyRecommend(dailyDetail.list.slice(0, 30))
+            setCurrentBoardIds(prev => ({ ...prev, daily: newSongBoardId }))
+          }
+        } catch (err) {
+          console.warn('🏠 [主页] 降级方案也失败了:', err)
+        }
+      }
+      
+      // 获取本周最热：使用多平台热歌榜（网易云 + QQ音乐）
+      console.log('🏠 [主页] 开始获取多平台本周最热（热歌榜）...')
+      const hotMusic = await getMultiPlatformHotMusic(
+        ['wy', 'tx'], // 网易云和QQ音乐
+        getListDetail,
+        {
+          wy: 'wy__3778678', // 网易云热歌榜
+          tx: 'tx__26',      // QQ音乐热歌榜
+        },
+        30 // 每个平台取前30首
+      )
+      
+      if (hotMusic && hotMusic.length > 0) {
+        setHotMusic(hotMusic.slice(0, 30)) // 取合并后的前30首
+        setCurrentBoardIds(prev => ({ ...prev, hot: 'multi_platform_hot' }))
+        console.log('🏠 [主页] 本周最热加载完成，共', hotMusic.length, '首（热歌多平台合并）')
+      } else {
+        console.warn('🏠 [主页] 多平台本周最热获取失败，尝试使用单一平台...')
+        // 降级方案：如果多平台获取失败，使用网易云热歌榜
+        try {
+          const hotBoardId = 'wy__3778678'
+          const hotDetail = await getListDetail(hotBoardId, 1)
+          if (hotDetail && hotDetail.list && hotDetail.list.length > 0) {
+            setHotMusic(hotDetail.list.slice(0, 30))
+            setCurrentBoardIds(prev => ({ ...prev, hot: hotBoardId }))
+          }
+        } catch (err) {
+          console.warn('🏠 [主页] 降级方案也失败了:', err)
+        }
       }
       
       console.log('🏠 [主页] 数据加载完成')
@@ -202,6 +231,69 @@ export default () => {
     setShowDailyModal(true)
   }, [dailyRecommend])
 
+  // 一键添加所有每日推荐歌曲到播放列表
+  const handleAddAllDailyToPlaylist = useCallback(async () => {
+    if (!dailyRecommend.length) return
+    
+    try {
+      console.log('📋 添加所有每日推荐歌曲到播放列表，共', dailyRecommend.length, '首')
+      
+      // 获取当前播放列表
+      const currentList = await getListMusics(LIST_IDS.DEFAULT)
+      
+      // 过滤出未在播放列表中的歌曲
+      const newSongs = dailyRecommend.filter(music => 
+        !currentList.some(item => item.id === music.id)
+      )
+      
+      if (newSongs.length === 0) {
+        console.log('📋 所有歌曲都已在播放列表中')
+        toast('所有歌曲都已在播放列表中')
+        return
+      }
+      
+      // 批量添加到播放列表
+      await addListMusics(LIST_IDS.DEFAULT, newSongs as LX.Music.MusicInfo[], 'bottom')
+      console.log('📋 成功添加', newSongs.length, '首歌曲到播放列表')
+      toast(`已添加 ${newSongs.length} 首歌曲`)
+      setShowDailyModal(false)
+    } catch (error) {
+      console.error('📋 添加歌曲到播放列表失败:', error)
+      toast('添加失败，请重试')
+    }
+  }, [dailyRecommend])
+
+  // 一键添加所有本周最热歌曲到播放列表
+  const handleAddAllHotToPlaylist = useCallback(async () => {
+    if (!hotMusic.length) return
+    
+    try {
+      console.log('📋 添加所有本周最热歌曲到播放列表，共', hotMusic.length, '首')
+      
+      // 获取当前播放列表
+      const currentList = await getListMusics(LIST_IDS.DEFAULT)
+      
+      // 过滤出未在播放列表中的歌曲
+      const newSongs = hotMusic.filter(music => 
+        !currentList.some(item => item.id === music.id)
+      )
+      
+      if (newSongs.length === 0) {
+        console.log('📋 所有歌曲都已在播放列表中')
+        toast('所有歌曲都已在播放列表中')
+        return
+      }
+      
+      // 批量添加到播放列表
+      await addListMusics(LIST_IDS.DEFAULT, newSongs as LX.Music.MusicInfo[], 'bottom')
+      console.log('📋 成功添加', newSongs.length, '首歌曲到播放列表')
+      toast(`已添加 ${newSongs.length} 首歌曲`)
+    } catch (error) {
+      console.error('📋 添加歌曲到播放列表失败:', error)
+      toast('添加失败，请重试')
+    }
+  }, [hotMusic])
+
   // 播放每日推荐中的某首歌（添加到播放列表）
   const handlePlayDailySong = useCallback(async (index: number) => {
     if (!dailyRecommend.length) return
@@ -225,25 +317,26 @@ export default () => {
       setShowDailyModal(false)
       
       // 检查歌曲是否已在播放列表中
-      const currentList = await getListMusics(LIST_IDS.TEMP)
+      const currentList = await getListMusics(LIST_IDS.DEFAULT)
       const existingIndex = currentList.findIndex(item => item.id === music.id)
       
       if (existingIndex !== -1) {
         // 如果歌曲已在播放列表中，直接播放
         console.log('🎵 歌曲已在播放列表中，直接播放:', music.name, '位置:', existingIndex)
-        void playList(LIST_IDS.TEMP, existingIndex)
+        void playList(LIST_IDS.DEFAULT, existingIndex)
       } else {
         // 歌曲不在播放列表中，添加并播放
         const currentLength = currentList.length
-        await addListMusics(LIST_IDS.TEMP, [music as LX.Music.MusicInfo], 'bottom')
+        await addListMusics(LIST_IDS.DEFAULT, [music as LX.Music.MusicInfo], 'bottom')
         const newSongIndex = currentLength
-        void playList(LIST_IDS.TEMP, newSongIndex)
+        void playList(LIST_IDS.DEFAULT, newSongIndex)
         console.log('🎵 每日推荐歌曲已添加到播放列表:', music.name, '位置:', newSongIndex)
       }
     } catch (error) {
       console.error('🎵 播放每日推荐歌曲失败:', error)
       // 如果添加到播放列表失败，尝试使用原来的方式
-      if (currentBoardIds.daily) {
+      // 注意：多平台合并的歌曲使用其自身的source作为榜单ID
+      if (currentBoardIds.daily && !currentBoardIds.daily?.startsWith('multi_platform')) {
         try {
           await playFromBoard(currentBoardIds.daily, [music], 0, true)
         } catch (fallbackError) {
@@ -272,25 +365,26 @@ export default () => {
       }
       
       // 检查歌曲是否已在播放列表中
-      const currentList = await getListMusics(LIST_IDS.TEMP)
+      const currentList = await getListMusics(LIST_IDS.DEFAULT)
       const existingIndex = currentList.findIndex(item => item.id === music.id)
       
       if (existingIndex !== -1) {
         // 如果歌曲已在播放列表中，直接播放
         console.log('🎵 歌曲已在播放列表中，直接播放:', music.name, '位置:', existingIndex)
-        void playList(LIST_IDS.TEMP, existingIndex)
+        void playList(LIST_IDS.DEFAULT, existingIndex)
       } else {
         // 歌曲不在播放列表中，添加并播放
         const currentLength = currentList.length
-        await addListMusics(LIST_IDS.TEMP, [music as LX.Music.MusicInfo], 'bottom')
+        await addListMusics(LIST_IDS.DEFAULT, [music as LX.Music.MusicInfo], 'bottom')
         const newSongIndex = currentLength
-        void playList(LIST_IDS.TEMP, newSongIndex)
+        void playList(LIST_IDS.DEFAULT, newSongIndex)
         console.log('🎵 歌曲已添加到播放列表:', music.name, '位置:', newSongIndex)
       }
     } catch (error) {
       console.error('🎵 播放歌曲失败:', error)
       // 如果添加到播放列表失败，尝试使用原来的方式
-      if (currentBoardIds.hot) {
+      // 注意：多平台合并的歌曲使用其自身的source作为榜单ID
+      if (currentBoardIds.hot && !currentBoardIds.hot?.startsWith('multi_platform')) {
         try {
           await playFromBoard(currentBoardIds.hot, [music], 0, true)
         } catch (fallbackError) {
@@ -317,7 +411,7 @@ export default () => {
       index={index}
       theme={theme}
       onPress={() => handlePlaySong(music, index)}
-      onLongPress={() => handleLongPress(music, currentBoardIds.hot)}
+      onLongPress={() => handleLongPress(music, currentBoardIds.hot?.startsWith('multi_platform') ? `${music.source}__hot` : currentBoardIds.hot)}
     />
   )
 
@@ -338,8 +432,7 @@ export default () => {
         {/* 加载中状态 */}
         {loading && (
           <View style={styles.loadingContainer}>
-            <Icon name="logo" size={40} color={theme['c-primary-font']} />
-            <Text color={theme['c-font-label']} style={{ marginTop: scaleSizeW(10) }}>
+            <Text color={theme['c-font-label']}>
               加载中...
             </Text>
           </View>
@@ -373,7 +466,7 @@ export default () => {
                     每日推荐
                   </Text>
                   <Text size={15} style={{ ...styles.recommendCardSubtitle, marginTop: scaleSizeW(10) }}>
-                    {dailyRecommend.length} 首精选歌曲
+                    最新音乐精选 · {dailyRecommend.length} 首
                   </Text>
                 </View>
               </View>
@@ -394,6 +487,16 @@ export default () => {
                   <Text size={10} style={styles.hotBadgeText}>HOT</Text>
                 </View>
               </View>
+              <TouchableOpacity 
+                onPress={handleAddAllHotToPlaylist} 
+                style={styles.addAllButtonSmall}
+                activeOpacity={0.7}
+              >
+                <Icon name="add-music" size={14} color="#FFFFFF" />
+                <Text size={12} style={{ color: '#FFFFFF', marginLeft: scaleSizeW(4), fontWeight: 'bold' }}>
+                  添加全部
+                </Text>
+              </TouchableOpacity>
             </View>
             <View style={styles.hotMusicContainer}>
               <View style={styles.musicList}>
@@ -438,9 +541,21 @@ export default () => {
             {/* 标题栏 */}
             <View style={{ ...styles.modalHeader, borderBottomColor: theme['c-border-background'] }}>
               <Text size={18} style={{ fontWeight: 'bold' }}>每日推荐</Text>
-              <TouchableOpacity onPress={() => setShowDailyModal(false)} style={styles.closeButton}>
-                <Icon name="close" size={24} color={theme['c-font']} />
-              </TouchableOpacity>
+              <View style={styles.modalHeaderButtons}>
+                <TouchableOpacity 
+                  onPress={handleAddAllDailyToPlaylist} 
+                  style={styles.addAllButton}
+                  activeOpacity={0.7}
+                >
+                  <Icon name="add-music" size={16} color="#FFFFFF" />
+                  <Text size={13} style={{ color: '#FFFFFF', marginLeft: scaleSizeW(6), fontWeight: 'bold' }}>
+                    添加全部
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setShowDailyModal(false)} style={styles.closeButton}>
+                  <Icon name="close" size={24} color={theme['c-font']} />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* 歌曲列表 */}
@@ -451,7 +566,7 @@ export default () => {
                   style={{ ...styles.modalMusicItem, borderBottomColor: theme['c-border-background'] }}
                   activeOpacity={0.7}
                   onPress={() => handlePlayDailySong(index)}
-                  onLongPress={() => handleLongPress(music, currentBoardIds.daily)}
+                  onLongPress={() => handleLongPress(music, currentBoardIds.daily?.startsWith('multi_platform') ? `${music.source}__new` : currentBoardIds.daily)}
                 >
                   <View style={styles.modalMusicRank}>
                     <Text 
@@ -671,6 +786,37 @@ const styles = createStyle({
     paddingHorizontal: scaleSizeW(20),
     paddingVertical: scaleSizeW(16),
     borderBottomWidth: 1,
+  },
+  modalHeaderButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF6B6B',
+    paddingHorizontal: scaleSizeW(12),
+    paddingVertical: scaleSizeW(6),
+    borderRadius: scaleSizeW(16),
+    marginRight: scaleSizeW(12),
+    shadowColor: '#FF6B6B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  addAllButtonSmall: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF5722',
+    paddingHorizontal: scaleSizeW(10),
+    paddingVertical: scaleSizeW(5),
+    borderRadius: scaleSizeW(14),
+    shadowColor: '#FF5722',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 3,
   },
   closeButton: {
     padding: scaleSizeW(4),

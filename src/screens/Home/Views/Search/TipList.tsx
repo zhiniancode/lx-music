@@ -13,6 +13,12 @@ export const ITEM_HEIGHT = scaleSizeH(36)
 
 export const debounceTipSearch = debounce((keyword: string, source: SearchState['temp_source'], callback: (list: string[]) => void) => {
   // console.log(reslutList)
+  // 检查音源是否存在且有tipSearch功能
+  if (!musicSdk[source] || !musicSdk[source].tipSearch) {
+    console.warn(`音源 ${source} 不存在或不支持tipSearch功能`)
+    callback([]) // 返回空数组
+    return
+  }
   void musicSdk[source].tipSearch.search(keyword).then(callback)
 }, 200)
 

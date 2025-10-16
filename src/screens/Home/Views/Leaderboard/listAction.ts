@@ -16,18 +16,18 @@ export const handlePlay = async(id: string, list?: LX.Music.MusicInfoOnline[], i
   const listId = getListId(id)
   if (!list?.length) list = (await getListDetail(id, 1)).list
   
-  // 如果是单首模式且当前正在播放临时列表，则添加到现有列表
-  if (singleMode && list?.length && playerState.playInfo.playerListId === LIST_IDS.TEMP) {
+  // 如果是单首模式，直接添加到默认播放列表
+  if (singleMode && list?.length) {
     // 获取添加前的列表长度
-    const currentList = await getListMusics(LIST_IDS.TEMP)
+    const currentList = await getListMusics(LIST_IDS.DEFAULT)
     const currentLength = currentList.length
     
-    // 添加歌曲到现有临时播放列表
-    await addListMusics(LIST_IDS.TEMP, list as LX.Music.MusicInfo[], 'bottom')
+    // 添加歌曲到默认播放列表
+    await addListMusics(LIST_IDS.DEFAULT, list as LX.Music.MusicInfo[], 'bottom')
     
     // 播放新添加的歌曲（索引 = 原列表长度 + 新歌曲在传入列表中的索引）
     const newSongIndex = currentLength + index
-    void playList(LIST_IDS.TEMP, newSongIndex)
+    void playList(LIST_IDS.DEFAULT, newSongIndex)
     return
   }
   

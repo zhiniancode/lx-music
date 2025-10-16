@@ -62,6 +62,11 @@ const getListLimit = async(source: LX.OnlineSource, bangId: string, page: number
 
   return musicSdk[source]?.leaderboard.getList(bangId, sourcePage + 1).then((result: ListDetailInfo) => {
     if (listCache !== cache.get(listKey)) return
+    // 防御性检查，确保result存在且有list属性
+    if (!result || !result.list) {
+      console.warn(`排行榜数据格式异常 (source: ${source}, bangId: ${bangId}):`, result)
+      return Promise.reject(new Error('获取排行榜失败'))
+    }
     result.list = deduplicationList(result.list.map(m => toNewMusicInfo(m)) as LX.Music.MusicInfoOnline[])
     let p = page
     const tempList = listCache.get(tempListKey) as ListDetailInfo['list']

@@ -7,7 +7,7 @@ export const errorDialog = message => {
   })
 }
 
-export const sources = ['kw', 'kg', 'tx', 'wy', 'mg']
+export const sources = ['tx', 'wy']  // 只保留QQ音乐和网易云音乐
 export const sourceVerify = source => {
   if (!sources.includes(source)) throw new Error('Source no match')
 }

@@ -22,14 +22,23 @@ export const getList = async(source: Source): Promise<string[]> => {
   } else {
     if (hotSearchState.sourceList[source]?.length) return hotSearchState.sourceList[source]!
     if (!musicSdk[source]?.hotSearch) {
+      console.warn(`音源 ${source} 不存在或不支持热搜功能`)
       hotSearchActions.setList(source, [])
       return []
     }
     return musicSdk[source]?.hotSearch.getList().catch((err: any) => {
-      console.log(err)
+      console.warn(`获取 ${source} 热搜列表失败:`, err.message)
       return { source, list: [] }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    }).then(data => hotSearchActions.setList(source, data.list))
+    }).then(data => {
+      // 防御性检查，确保data存在且有list属性
+      if (!data || !data.list) {
+        console.warn(`音源 ${source} 热搜数据格式异常:`, data)
+        hotSearchActions.setList(source, [])
+        return []
+      }
+      return hotSearchActions.setList(source, data.list)
+    })
   }
 }
 

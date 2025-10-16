@@ -17,7 +17,7 @@ interface SonglistInfo {
 export default () => {
   const headerBarRef = useRef<HeaderBarType>(null)
   const listRef = useRef<ListType>(null)
-  const songlistInfo = useRef<SonglistInfo>({ source: 'kw', sortId: '5', tagId: '' })
+  const songlistInfo = useRef<SonglistInfo>({ source: 'wy', sortId: '5', tagId: '' })
 
   useEffect(() => {
     void getSongListSetting().then(info => {

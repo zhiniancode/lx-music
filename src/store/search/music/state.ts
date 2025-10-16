@@ -25,7 +25,7 @@ export interface InitState {
 
 const state: InitState = {
   searchText: '',
-  source: 'kw',
+  source: 'wy',  // 默认网易云（质量最好）
   sources: [],
   listInfos: {
     all: {

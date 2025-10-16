@@ -29,7 +29,7 @@ export default forwardRef<LeftBarType, LeftBarProps>(({ onChangeList }, ref) => 
   const theme = useTheme()
   const sourceSelectorRef = useRef<SourceSelectorType>(null)
   const boardsListRef = useRef<BoardsListType>(null)
-  const boundInfo = useRef<{ source: LX.OnlineSource, id: string | null }>({ source: 'kw', id: null })
+  const boundInfo = useRef<{ source: LX.OnlineSource, id: string | null }>({ source: 'wy', id: null })
   useImperativeHandle(ref, () => ({
     setBound(source, listId) {
       boundInfo.current = { source, id: listId }

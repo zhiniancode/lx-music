@@ -48,6 +48,11 @@ export const search = async(text: string, page: number, sourceId: Source): Promi
     listInfo.key = key
     return (musicSdk[sourceId]?.musicSearch.search(text, page, listInfo.limit).then((data: SearchResult) => {
       if (key != listInfo.key) return []
+      // 防御性检查，确保data存在且有list属性
+      if (!data || !data.list) {
+        console.warn(`搜索结果数据格式异常 (source: ${sourceId}, text: ${text}):`, data)
+        return []
+      }
       return setListInfo(data, page, text)
     }) ?? Promise.reject(new Error('source not found: ' + sourceId))).catch((err: any) => {
       if (listInfo.list.length && page == 1) clearListInfo(sourceId)

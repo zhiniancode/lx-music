@@ -13,9 +13,7 @@ import { useSettingValue } from '@/store/setting/hook'
 import { scaleSizeH } from '@/utils/pixelRatio'
 import { HEADER_HEIGHT } from '@/config/constant'
 import { type InitState as CommonState } from '@/store/common/state'
-import { setNavActiveId } from '@/core/common'
-import { navigations } from '@/navigation'
-import { COMPONENT_IDS } from '@/config/constant'
+import HeaderSearch from '@/components/HeaderSearch'
 
 const headerComponents: Partial<Record<CommonState['navActiveId'], React.ReactNode>> = {}
 
@@ -36,28 +34,16 @@ const LeftHeader = () => {
     global.app_event.changeMenuVisible(true)
   }
 
-  const openSearch = () => {
-    navigations.pushSearchScreen(COMPONENT_IDS.home)
-  }
-
   return (
     <View style={{
       ...styles.container,
       height: scaleSizeH(HEADER_HEIGHT) + statusBarHeight,
       paddingTop: statusBarHeight,
     }}>
-      <View style={styles.left}>
-        <TouchableOpacity style={styles.btn} onPress={openMenu}>
-          <Icon color={theme['c-font']} name="menu" size={18} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.titleBtn} onPress={openMenu}>
-          <Text style={styles.leftTitle} size={18}>{t(id)}</Text>
-        </TouchableOpacity>
-      </View>
-      {headerComponents[id] ?? null}
-      <TouchableOpacity style={styles.btn} onPress={openSearch}>
-        <Icon color={theme['c-font']} name="search-2" size={18} />
+      <TouchableOpacity style={styles.menuBtn} onPress={openMenu}>
+        <Icon color={theme['c-font']} name="menu" size={20} />
       </TouchableOpacity>
+      <HeaderSearch />
     </View>
   )
 }
@@ -71,16 +57,10 @@ const LeftHeader = () => {
 // }
 const RightHeader = () => {
   const theme = useTheme()
-  const t = useI18n()
-  const id = useNavActiveId()
   const statusBarHeight = useStatusbarHeight()
 
   const openMenu = () => {
     global.app_event.changeMenuVisible(true)
-  }
-
-  const openSearch = () => {
-    navigations.pushSearchScreen(COMPONENT_IDS.home)
   }
 
   return (
@@ -89,17 +69,9 @@ const RightHeader = () => {
       height: scaleSizeH(HEADER_HEIGHT) + statusBarHeight,
       paddingTop: statusBarHeight,
     }}>
-      <TouchableOpacity style={styles.btn} onPress={openSearch}>
-        <Icon color={theme['c-font']} name="search-2" size={18} />
-      </TouchableOpacity>
-      <View style={styles.left}>
-        <TouchableOpacity style={styles.titleBtn} onPress={openMenu}>
-          <Text style={styles.rightTitle} size={18}>{t(id)}</Text>
-        </TouchableOpacity>
-      </View>
-      {headerComponents[id] ?? null}
-      <TouchableOpacity style={styles.btn} onPress={openMenu}>
-        <Icon color={theme['c-font']} name="menu" size={18} />
+      <HeaderSearch />
+      <TouchableOpacity style={styles.menuBtn} onPress={openMenu}>
+        <Icon color={theme['c-font']} name="menu" size={20} />
       </TouchableOpacity>
     </View>
   )
@@ -125,41 +97,19 @@ const Header = () => {
 const styles = createStyle({
   container: {
     // width: '100%',
-    paddingRight: 5,
+    paddingHorizontal: 8,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     // backgroundColor: 'rgba(0,0,0,0.1)',
     zIndex: 10,
+    elevation: 10,
   },
-  left: {
-    flex: 1,
-    flexDirection: 'row',
-    paddingLeft: 5,
-    alignItems: 'center',
-    height: '100%',
-  },
-  btn: {
-    // flex: 1,
+  menuBtn: {
     width: HEADER_HEIGHT,
-    // backgroundColor: 'rgba(0,0,0,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
-  },
-  titleBtn: {
-    flex: 1,
-    // backgroundColor: 'rgba(0,0,0,0.1)',
-    height: '100%',
-    justifyContent: 'center',
-  },
-  leftTitle: {
-    paddingLeft: 14,
-    paddingRight: 16,
-  },
-  rightTitle: {
-    paddingLeft: 16,
-    paddingRight: 16,
   },
 })
 

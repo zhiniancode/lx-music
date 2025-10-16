@@ -27,7 +27,7 @@ export default () => {
   const searchTipListRef = useRef<TipListType>(null)
   const listRef = useRef<ListType>(null)
   const layoutHeightRef = useRef<number>(0)
-  const searchInfo = useRef<SearchInfo>({ temp_source: 'kw', source: 'kw', searchType: 'music' })
+  const searchInfo = useRef<SearchInfo>({ temp_source: 'wy', source: 'wy', searchType: 'music' })
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {

@@ -8,7 +8,7 @@ import { bootLog } from '@/utils/bootLog'
 import { getDislikeInfo, setDislikeInfo } from '@/core/dislikeList'
 import { unlink } from '@/utils/fs'
 import { TEMP_FILE_PATH } from '@/utils/tools'
-import { DEFAULT_USER_API_SCRIPT, DEFAULT_USER_API_ID } from '@/config/defaultUserApi'
+import { PRESET_USER_APIS } from '@/config/defaultUserApi'
 // import { play, playList } from '../player/player'
 
 // const initPrevPlayInfo = async(appSetting: LX.AppSetting) => {
@@ -24,41 +24,48 @@ import { DEFAULT_USER_API_SCRIPT, DEFAULT_USER_API_ID } from '@/config/defaultUs
 // }
 
 /**
- * 初始化默认音源
- * 检查是否已有默认音源，如果没有则自动添加
- * 如果当前没有设置音源，则将默认音源设为当前音源
+ * 初始化预置音源
+ * 检查是否已有预置音源，如果没有则自动添加
+ * 如果当前没有设置音源，则将第一个预置音源设为当前音源
  */
 const initDefaultUserApi = async(appSetting: LX.AppSetting) => {
   try {
-    bootLog('Checking default user API...')
+    bootLog('Checking preset user APIs...')
     const userApis = await getUserApiList()
     
-    // 检查是否已存在默认音源（通过名称检查）
-    const existingDefaultApi = userApis.find(api => 
-      api.name === '微信公众号：洛雪音乐'
-    )
+    let firstAvailableApiId: string | undefined
     
-    let defaultApiId = existingDefaultApi?.id
-    
-    if (!existingDefaultApi) {
-      bootLog('Adding default user API...')
-      const addedApi = await addUserApi(DEFAULT_USER_API_SCRIPT)
-      defaultApiId = addedApi.id
-      bootLog('Default user API added.')
-    } else {
-      bootLog('Default user API already exists.')
+    // 遍历所有预置API源
+    for (const presetApi of PRESET_USER_APIS) {
+      // 检查是否已存在该预置源（通过名称检查）
+      const existingApi = userApis.find(api => api.name === presetApi.name)
+      
+      if (!existingApi) {
+        try {
+          bootLog(`Adding preset user API: ${presetApi.name}...`)
+          const addedApi = await addUserApi(presetApi.script)
+          if (!firstAvailableApiId) firstAvailableApiId = addedApi.id
+          bootLog(`Preset user API added: ${presetApi.name}`)
+        } catch (err) {
+          console.error(`Failed to add preset API ${presetApi.name}:`, err)
+          bootLog(`Failed to add preset API: ${presetApi.name}`)
+        }
+      } else {
+        if (!firstAvailableApiId) firstAvailableApiId = existingApi.id
+        bootLog(`Preset user API already exists: ${presetApi.name}`)
+      }
     }
     
-    // 如果当前没有设置音源，将默认音源设为当前音源
-    if (!appSetting['common.apiSource'] && defaultApiId) {
-      bootLog('Setting default user API as current source...')
+    // 如果当前没有设置音源，将第一个可用的预置音源设为当前音源
+    if (!appSetting['common.apiSource'] && firstAvailableApiId) {
+      bootLog('Setting first available preset API as current source...')
       const { updateSetting } = await import('../common')
-      updateSetting({ 'common.apiSource': defaultApiId })
-      bootLog('Default user API set as current source.')
+      updateSetting({ 'common.apiSource': firstAvailableApiId })
+      bootLog('Preset user API set as current source.')
     }
   } catch (err) {
-    console.error('Failed to init default user API:', err)
-    bootLog('Default user API init failed.')
+    console.error('Failed to init preset user APIs:', err)
+    bootLog('Preset user APIs init failed.')
   }
 }
 
@@ -72,7 +79,7 @@ export default async(appSetting: LX.AppSetting) => {
   setDislikeInfo(await getDislikeInfo()) // 获取不喜欢列表
   bootLog('User list inited.')
   
-  // 初始化默认音源
+  // 初始化预置音源
   await initDefaultUserApi(appSetting)
   
   setNavActiveId((await getViewPrevState()).id)

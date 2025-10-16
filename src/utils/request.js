@@ -21,7 +21,10 @@ export const httpFetch = (url, options = { method: 'get' }) => {
   const requestObj = fetchData(url, options)
   return {
     promise: requestObj.request.catch(err => {
-      console.log('出错', err.message)
+      // 只在非中断错误时打印日志，减少日志干扰
+      if (err.message !== 'Aborted') {
+        console.log('出错', err.message)
+      }
       switch (err.message) {
         case 'socket hang up':
           return Promise.reject(new Error(requestMsg.unachievable))
@@ -167,7 +170,8 @@ const blobToBuffer = (blob) => {
 }
 
 const fetchData = (url, { timeout = 15000, ...options }) => {
-  console.log('---start---', url)
+  // 减少日志干扰，可以注释掉以下这行
+  // console.log('---start---', url)
 
   const controller = new global.AbortController()
   let id = BackgroundTimer.setTimeout(() => {

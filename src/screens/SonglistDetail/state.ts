@@ -5,7 +5,7 @@ export const ListInfoContext = createContext<ListInfoItem>({
   id: '',
   author: '',
   name: '',
-  source: 'kw',
+  source: 'wy',
 })
 
 export const useListInfo = () => {

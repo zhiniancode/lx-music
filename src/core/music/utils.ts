@@ -253,7 +253,7 @@ export const getOnlineOtherSourceMusicUrl = async({ musicInfos, quality, onToggl
     itemQuality = quality ?? getPlayQuality(settingState.setting['player.playQuality'], musicInfo)
     if (!musicInfo.meta._qualitys[itemQuality]) continue
 
-    console.log('try toggle to: ', musicInfo.source, musicInfo.name, musicInfo.singer, musicInfo.interval)
+    console.log('🔄 切换音源:', musicInfo.source, '-', musicInfo.name, musicInfo.singer, musicInfo.interval)
     onToggleSource(musicInfo)
     break
   }
@@ -264,6 +264,10 @@ export const getOnlineOtherSourceMusicUrl = async({ musicInfos, quality, onToggl
 
   let reqPromise
   try {
+    // 检查音源是否存在
+    if (!musicSdk[musicInfo.source] || !musicSdk[musicInfo.source].getMusicUrl) {
+      throw new Error(`音源 ${musicInfo.source} 不存在或不支持获取音乐URL`)
+    }
     reqPromise = musicSdk[musicInfo.source].getMusicUrl(toOldMusicInfo(musicInfo), itemQuality).promise
   } catch (err: any) {
     reqPromise = Promise.reject(err)
@@ -301,6 +305,10 @@ export const handleGetOnlineMusicUrl = async({ musicInfo, quality, onToggleSourc
 
   let reqPromise
   try {
+    // 检查音源是否存在
+    if (!musicSdk[musicInfo.source] || !musicSdk[musicInfo.source].getMusicUrl) {
+      throw new Error(`音源 ${musicInfo.source} 不存在或不支持获取音乐URL`)
+    }
     reqPromise = musicSdk[musicInfo.source].getMusicUrl(toOldMusicInfo(musicInfo), targetQuality).promise
   } catch (err: any) {
     reqPromise = Promise.reject(err)
@@ -345,7 +353,7 @@ export const getOnlineOtherSourcePicUrl = async({ musicInfos, onToggleSource, is
     if (retryedSource.includes(musicInfo.source)) continue
     retryedSource.push(musicInfo.source)
     // if (!assertApiSupport(musicInfo.source)) continue
-    console.log('try toggle to: ', musicInfo.source, musicInfo.name, musicInfo.singer, musicInfo.interval)
+    console.log('🔄 切换音源:', musicInfo.source, '-', musicInfo.name, musicInfo.singer, musicInfo.interval)
     onToggleSource(musicInfo)
     break
   }
@@ -355,6 +363,10 @@ export const getOnlineOtherSourcePicUrl = async({ musicInfos, onToggleSource, is
 
   let reqPromise
   try {
+    // 检查音源是否存在
+    if (!musicSdk[musicInfo.source] || !musicSdk[musicInfo.source].getPic) {
+      throw new Error(`音源 ${musicInfo.source} 不存在或不支持获取封面`)
+    }
     reqPromise = musicSdk[musicInfo.source].getPic(toOldMusicInfo(musicInfo))
   } catch (err: any) {
     reqPromise = Promise.reject(err)
@@ -385,6 +397,10 @@ export const handleGetOnlinePicUrl = async({ musicInfo, isRefresh, onToggleSourc
   // console.log(musicInfo.source)
   let reqPromise
   try {
+    // 检查音源是否存在
+    if (!musicSdk[musicInfo.source] || !musicSdk[musicInfo.source].getPic) {
+      throw new Error(`音源 ${musicInfo.source} 不存在或不支持获取封面`)
+    }
     reqPromise = musicSdk[musicInfo.source].getPic(toOldMusicInfo(musicInfo))
   } catch (err) {
     reqPromise = Promise.reject(err)
@@ -428,7 +444,7 @@ export const getOnlineOtherSourceLyricInfo = async({ musicInfos, onToggleSource,
     if (retryedSource.includes(musicInfo.source)) continue
     retryedSource.push(musicInfo.source)
     // if (!assertApiSupport(musicInfo.source)) continue
-    console.log('try toggle to: ', musicInfo.source, musicInfo.name, musicInfo.singer, musicInfo.interval)
+    console.log('🔄 切换音源:', musicInfo.source, '-', musicInfo.name, musicInfo.singer, musicInfo.interval)
     onToggleSource(musicInfo)
     break
   }
@@ -441,6 +457,10 @@ export const getOnlineOtherSourceLyricInfo = async({ musicInfos, onToggleSource,
 
   let reqPromise
   try {
+    // 检查音源是否存在
+    if (!musicSdk[musicInfo.source] || !musicSdk[musicInfo.source].getLyric) {
+      throw new Error(`音源 ${musicInfo.source} 不存在或不支持获取歌词`)
+    }
     // TODO: remove any type
     reqPromise = (musicSdk[musicInfo.source].getLyric(toOldMusicInfo(musicInfo)) as any).promise
   } catch (err: any) {
@@ -476,6 +496,10 @@ export const handleGetOnlineLyricInfo = async({ musicInfo, onToggleSource, isRef
   // console.log(musicInfo.source)
   let reqPromise
   try {
+    // 检查音源是否存在
+    if (!musicSdk[musicInfo.source] || !musicSdk[musicInfo.source].getLyric) {
+      throw new Error(`音源 ${musicInfo.source} 不存在或不支持获取歌词`)
+    }
     // TODO: remove any type
     reqPromise = (musicSdk[musicInfo.source].getLyric(toOldMusicInfo(musicInfo)) as any).promise
   } catch (err) {

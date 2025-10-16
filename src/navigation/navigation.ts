@@ -11,7 +11,8 @@ import {
 } from './screenNames'
 
 import themeState from '@/store/theme/state'
-import { NAV_SHEAR_NATIVE_IDS } from '@/config/constant'
+import commonState from '@/store/common/state'
+import { NAV_SHEAR_NATIVE_IDS, COMPONENT_IDS } from '@/config/constant'
 import { getStatusBarStyle } from './utils'
 import { windowSizeTools } from '@/utils/windowSizeTools'
 import { type ListInfoItem } from '@/store/songlist/state'
@@ -86,7 +87,7 @@ export async function pushHomeScreen() {
     },
   })
 }
-export function pushPlayDetailScreen(componentId: string, skipAnimation = false) {
+export function pushPlayDetailScreen(componentId: string | COMPONENT_IDS, skipAnimation = false) {
   /*
     Navigation.setDefaultOptions({
       topBar: {
@@ -121,8 +122,18 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
   */
   requestAnimationFrame(() => {
     const theme = themeState.theme
+    
+    // 如果传入的是逻辑 ID，从 commonState 中获取真实的 componentId
+    const realComponentId = Object.values(COMPONENT_IDS).includes(componentId as COMPONENT_IDS)
+      ? commonState.componentIds[componentId as COMPONENT_IDS]
+      : componentId
+    
+    if (!realComponentId) {
+      console.error('pushPlayDetailScreen: componentId not found', componentId)
+      return
+    }
 
-    void Navigation.push(componentId, {
+    void Navigation.push(realComponentId, {
       component: {
         name: PLAY_DETAIL_SCREEN,
         options: {
@@ -200,11 +211,21 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
     })
   })
 }
-export function pushSonglistDetailScreen(componentId: string, info: ListInfoItem) {
+export function pushSonglistDetailScreen(componentId: string | COMPONENT_IDS, info: ListInfoItem) {
   const theme = themeState.theme
 
   requestAnimationFrame(() => {
-    void Navigation.push(componentId, {
+    // 如果传入的是逻辑 ID，从 commonState 中获取真实的 componentId
+    const realComponentId = Object.values(COMPONENT_IDS).includes(componentId as COMPONENT_IDS)
+      ? commonState.componentIds[componentId as COMPONENT_IDS]
+      : componentId
+    
+    if (!realComponentId) {
+      console.error('pushSonglistDetailScreen: componentId not found', componentId)
+      return
+    }
+    
+    void Navigation.push(realComponentId, {
       component: {
         name: SONGLIST_DETAIL_SCREEN,
         passProps: {
@@ -304,11 +325,21 @@ export function pushSonglistDetailScreen(componentId: string, info: ListInfoItem
     })
   })
 }
-export function pushSearchScreen(componentId: string) {
+export function pushSearchScreen(componentId: string | COMPONENT_IDS) {
   requestAnimationFrame(() => {
     const theme = themeState.theme
+    
+    // 如果传入的是逻辑 ID，从 commonState 中获取真实的 componentId
+    const realComponentId = Object.values(COMPONENT_IDS).includes(componentId as COMPONENT_IDS)
+      ? commonState.componentIds[componentId as COMPONENT_IDS]
+      : componentId
+    
+    if (!realComponentId) {
+      console.error('pushSearchScreen: componentId not found', componentId)
+      return
+    }
 
-    void Navigation.push(componentId, {
+    void Navigation.push(realComponentId, {
       component: {
         name: SEARCH_SCREEN,
         options: {
@@ -355,7 +386,7 @@ export function pushSearchScreen(componentId: string) {
     })
   })
 }
-export function pushCommentScreen(componentId: string) {
+export function pushCommentScreen(componentId: string | COMPONENT_IDS) {
   /*
     Navigation.setDefaultOptions({
       topBar: {
@@ -390,8 +421,18 @@ export function pushCommentScreen(componentId: string) {
   */
   requestAnimationFrame(() => {
     const theme = themeState.theme
+    
+    // 如果传入的是逻辑 ID，从 commonState 中获取真实的 componentId
+    const realComponentId = Object.values(COMPONENT_IDS).includes(componentId as COMPONENT_IDS)
+      ? commonState.componentIds[componentId as COMPONENT_IDS]
+      : componentId
+    
+    if (!realComponentId) {
+      console.error('pushCommentScreen: componentId not found', componentId)
+      return
+    }
 
-    void Navigation.push(componentId, {
+    void Navigation.push(realComponentId, {
       component: {
         name: COMMENT_SCREEN,
         options: {

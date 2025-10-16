@@ -1,8 +1,8 @@
-import kw from './kw'
-import kg from './kg'
+// import kw from './kw'  // 已移除酷我音乐
+// import kg from './kg'  // 已移除酷狗音乐
 import tx from './tx'
 import wy from './wy'
-import mg from './mg'
+// import mg from './mg'  // 已移除咪咕音乐
 // import bd from './bd'
 import xm from './xm'
 import { supportQuality } from './api-source'
@@ -10,14 +10,14 @@ import { supportQuality } from './api-source'
 
 const sources = {
   sources: [
-    {
-      name: '酷我音乐',
-      id: 'kw',
-    },
-    {
-      name: '酷狗音乐',
-      id: 'kg',
-    },
+    // {
+    //   name: '酷我音乐',
+    //   id: 'kw',
+    // },  // 已移除酷我音乐
+    // {
+    //   name: '酷狗音乐',
+    //   id: 'kg',
+    // },  // 已移除酷狗音乐
     {
       name: 'QQ音乐',
       id: 'tx',
@@ -26,20 +26,20 @@ const sources = {
       name: '网易音乐',
       id: 'wy',
     },
-    {
-      name: '咪咕音乐',
-      id: 'mg',
-    },
+    // {
+    //   name: '咪咕音乐',
+    //   id: 'mg',
+    // },  // 已移除咪咕音乐
     // {
     //   name: '百度音乐',
     //   id: 'bd',
     // },
   ],
-  kw,
-  kg,
+  // kw,  // 已移除酷我音乐
+  // kg,  // 已移除酷狗音乐
   tx,
   wy,
-  mg,
+  // mg,  // 已移除咪咕音乐
   // bd,
   xm,
 }
@@ -62,7 +62,7 @@ export const searchMusic = async({ name, singer, source: s, limit = 25 }) => {
   const trimStr = str => typeof str == 'string' ? str.trim() : str
   const musicName = trimStr(name)
   const tasks = []
-  const excludeSource = ['xm']
+  const excludeSource = ['xm', 'kw', 'kg', 'mg']  // 排除虾米、酷我、酷狗、咪咕
   for (const source of sources.sources) {
     if (!sources[source.id].musicSearch || source.id == s || excludeSource.includes(source.id)) continue
     tasks.push(sources[source.id].musicSearch.search(`${musicName} ${singer || ''}`.trim(), 1, limit).catch(_ => null))

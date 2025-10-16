@@ -25,7 +25,7 @@ export interface InitState {
 
 const state: InitState = {
   searchText: '',
-  source: 'kw',
+  source: 'wy',  // 改为网易云音乐作为默认源
   sources: [],
   listInfos: {
     all: {
