@@ -13,6 +13,11 @@ export default {
   },
   filterList({ songs, privileges }) {
     // console.log(songs, privileges)
+    // 添加防御性检查
+    if (!songs || !Array.isArray(songs) || !privileges || !Array.isArray(privileges)) {
+      console.warn('网易云音乐详情数据格式异常:', { songs, privileges })
+      return []
+    }
     const list = []
     songs.forEach((item, index) => {
       const types = []
@@ -106,6 +111,11 @@ export default {
     })
     const { body, statusCode } = await requestObj.promise
     if (statusCode != 200 || body.code !== 200) throw new Error('获取歌曲详情失败')
+    // 添加防御性检查，确保数据结构完整
+    if (!body.songs || !body.privileges) {
+      console.warn('网易云音乐详情响应数据结构异常:', body)
+      return { source: 'wy', list: [] }
+    }
     // console.log(body)
     return { source: 'wy', list: this.filterList(body) }
   },

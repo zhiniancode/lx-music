@@ -36,7 +36,8 @@ export default forwardRef<MusicListType, {}>((props, ref) => {
             listRef.current?.setList(result.list)
             listRef.current?.setStatus(boardState.listDetailInfo.maxPage <= page ? 'end' : 'idle')
           })
-        }).catch(() => {
+        }).catch((err) => {
+          console.error(`❌ [MusicList] 加载失败:`, err)
           if (boardState.listDetailInfo.list.length && page == 1) clearListDetail()
           listRef.current?.setStatus('error')
         })
@@ -65,7 +66,8 @@ export default forwardRef<MusicListType, {}>((props, ref) => {
       if (isUnmountedRef.current) return
       listRef.current?.setList(result.list)
       listRef.current?.setStatus(boardState.listDetailInfo.maxPage <= page ? 'end' : 'idle')
-    }).catch(() => {
+    }).catch((err) => {
+      console.error(`❌ [MusicList] 刷新失败:`, err)
       if (boardState.listDetailInfo.list.length && page == 1) clearListDetail()
       listRef.current?.setStatus('error')
     })
@@ -78,7 +80,8 @@ export default forwardRef<MusicListType, {}>((props, ref) => {
       if (isUnmountedRef.current) return
       listRef.current?.setList(result.list, true)
       listRef.current?.setStatus(boardState.listDetailInfo.maxPage <= page ? 'end' : 'idle')
-    }).catch(() => {
+    }).catch((err) => {
+      console.error(`❌ [MusicList] 加载更多失败:`, err)
       if (boardState.listDetailInfo.list.length && page == 1) clearListDetail()
       listRef.current?.setStatus('error')
     })

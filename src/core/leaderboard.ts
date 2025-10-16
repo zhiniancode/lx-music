@@ -10,6 +10,10 @@ import musicSdk from '@/utils/musicSdk'
  * @returns
  */
 export const setListDetailInfo = (id: string) => {
+  if (!id || !id.includes('__')) {
+    console.error(`❌ [setListDetailInfo] ID 格式错误: "${id}"`)
+    return
+  }
   clearListDetail()
   const [source] = id.split('__') as [LX.OnlineSource, string]
   leaderboardActions.setListDetailInfo(source, id)
@@ -35,7 +39,16 @@ const LIST_LOAD_LIMIT = 30
 export const getBoardsList = async(source: LX.OnlineSource) => {
   // const source = (await getLeaderboardSetting()).source as LX.OnlineSource
   if (leaderboardState.boards[source]) return leaderboardState.boards[source]!.list
-  const board = await (musicSdk[source]?.leaderboard.getBoards() as Promise<Board>)
+  const boardPromise = (musicSdk as any)[source]?.leaderboard.getBoards()
+  if (!boardPromise) {
+    console.warn(`音源 ${source} 不支持排行榜功能`)
+    return []
+  }
+  const board = await (boardPromise as Promise<Board>)
+  if (!board || !board.list || !Array.isArray(board.list)) {
+    console.warn(`获取排行榜列表失败 (source: ${source}):`, board)
+    return []
+  }
   setBoard(board, source)
   return leaderboardState.boards[source]!.list
 }
@@ -48,6 +61,11 @@ export const getBoardsList = async(source: LX.OnlineSource) => {
  * @returns
  */
 const getListLimit = async(source: LX.OnlineSource, bangId: string, page: number): Promise<ListDetailInfo> => {
+  if (!source) {
+    console.error('❌ [getListLimit] source 参数为空！')
+    return Promise.reject(new Error('source is empty'))
+  }
+  
   const listKey = `${source}__${bangId}`
   const prevPageKey = `${source}__${bangId}__${page - 1}`
   const tempListKey = `${source}__${bangId}__temp`
@@ -60,12 +78,29 @@ const getListLimit = async(source: LX.OnlineSource, bangId: string, page: number
     if (prevPageData) sourcePage = prevPageData.sourcePage
   }
 
-  return musicSdk[source]?.leaderboard.getList(bangId, sourcePage + 1).then((result: ListDetailInfo) => {
-    if (listCache !== cache.get(listKey)) return
+  const leaderboardPromise = (musicSdk as any)[source]?.leaderboard.getList(bangId, sourcePage + 1)
+  if (!leaderboardPromise) {
+    console.warn(`❌ 音源 ${source} 不存在或不支持排行榜功能`)
+    return Promise.reject(new Error('source not found'))
+  }
+  
+  return leaderboardPromise.then((result: ListDetailInfo) => {
+    if (listCache !== cache.get(listKey)) {
+      console.warn(`缓存已失效 (source: ${source}, bangId: ${bangId})`)
+      throw new Error('缓存已失效')
+    }
     // 防御性检查，确保result存在且有list属性
-    if (!result || !result.list) {
-      console.warn(`排行榜数据格式异常 (source: ${source}, bangId: ${bangId}):`, result)
-      return Promise.reject(new Error('获取排行榜失败'))
+    if (!result) {
+      console.warn(`排行榜返回数据为空 (source: ${source}, bangId: ${bangId})`)
+      throw new Error('获取排行榜失败')
+    }
+    if (!result.list) {
+      console.warn(`排行榜缺少list属性 (source: ${source}, bangId: ${bangId}):`, result)
+      throw new Error('获取排行榜失败')
+    }
+    if (!Array.isArray(result.list)) {
+      console.warn(`排行榜list不是数组 (source: ${source}, bangId: ${bangId}), 类型:`, typeof result.list)
+      throw new Error('获取排行榜失败')
     }
     result.list = deduplicationList(result.list.map(m => toNewMusicInfo(m)) as LX.Music.MusicInfoOnline[])
     let p = page
@@ -100,8 +135,13 @@ const getListLimit = async(source: LX.OnlineSource, bangId: string, page: number
       })
       p++
     } while (result.list.length > 0)
-    return (listCache.get(`${source}__${bangId}__${page}`) as PageCache).data
-  }) ?? Promise.reject(new Error('source not found'))
+    const pageCache = listCache.get(`${source}__${bangId}__${page}`) as PageCache
+    if (!pageCache || !pageCache.data) {
+      console.warn(`缓存数据异常 (source: ${source}, bangId: ${bangId}, page: ${page})`)
+      throw new Error('缓存数据异常')
+    }
+    return pageCache.data
+  })
 }
 
 /**
@@ -113,6 +153,13 @@ const getListLimit = async(source: LX.OnlineSource, bangId: string, page: number
 export const getListDetail = async(id: string, page: number, isRefresh = false): Promise<ListDetailInfo> => {
   // console.log(tabId)
   const [source, bangId] = id.split('__') as [LX.OnlineSource, string]
+  
+  // 验证 source 和 bangId
+  if (!source || !bangId) {
+    console.error(`排行榜 ID 格式错误: "${id}", 应为 "source__bangId" 格式`)
+    return Promise.reject(new Error(`Invalid leaderboard ID: ${id}`))
+  }
+  
   const listKey = `${source}__${bangId}`
   const pageKey = `${source}__${bangId}__${page}`
 
@@ -135,6 +182,13 @@ export const getListDetail = async(id: string, page: number, isRefresh = false):
  */
 export const getListDetailAll = async(id: string, isRefresh = false): Promise<LX.Music.MusicInfoOnline[]> => {
   const [source, bangId] = id.split('__') as [LX.OnlineSource, string]
+  
+  // 验证 source 和 bangId
+  if (!source || !bangId) {
+    console.error(`排行榜 ID 格式错误: "${id}", 应为 "source__bangId" 格式`)
+    return Promise.reject(new Error(`Invalid leaderboard ID: ${id}`))
+  }
+  
   // console.log(tabId)
   const listKey = `${source}__${bangId}`
   let listCache = cache.get(listKey)!

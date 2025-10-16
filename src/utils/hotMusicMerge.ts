@@ -3,7 +3,7 @@
  * 用于比较不同音乐平台的热歌榜，合并并去重
  */
 
-interface MusicWithHotScore extends LX.Music.MusicInfoOnline {
+type MusicWithHotScore = LX.Music.MusicInfoOnline & {
   hotScore: number // 热度分数
   rankPosition: number // 原始排名
   platformSource: string // 平台来源标识
@@ -89,6 +89,11 @@ export function mergeHotMusic(platformMusicLists: Array<{
   const allMusicWithScores: MusicWithHotScore[] = []
   
   platformMusicLists.forEach(({ list, source }) => {
+    // 添加防御性检查
+    if (!list || !Array.isArray(list) || list.length === 0) {
+      console.warn(`⚠️ 平台 ${source} 的歌曲列表无效或为空`)
+      return
+    }
     const musicWithScores = addHotScore(list, source)
     allMusicWithScores.push(...musicWithScores)
   })
@@ -120,7 +125,7 @@ export function mergeHotMusic(platformMusicLists: Array<{
   uniqueMusic.sort((a, b) => b.hotScore - a.hotScore)
 
   // 移除额外的热度信息，返回原始音乐信息
-  return uniqueMusic.map(({ hotScore, rankPosition, platformSource, ...music }) => music)
+  return uniqueMusic.map(({ hotScore, rankPosition, platformSource, ...music }) => music as LX.Music.MusicInfoOnline)
 }
 
 /**
@@ -162,10 +167,32 @@ export async function getMultiPlatformHotMusic(
       }
 
       try {
+        console.log(`🔍 开始获取 ${source} 热歌榜，榜单ID: ${boardId}`)
         const detail = await withTimeout(
           getListDetailFn(boardId, 1),
           timeout
-        )
+        ).catch(err => {
+          console.error(`⚠️ ${source} 热歌榜请求失败:`, err)
+          return null
+        })
+        console.log(`📦 ${source} 热歌榜原始数据:`, detail)
+        // 添加防御性检查
+        if (!detail) {
+          console.warn(`⚠️ ${source} 热歌榜返回 null/undefined`)
+          return null
+        }
+        if (typeof detail !== 'object') {
+          console.warn(`⚠️ ${source} 热歌榜返回的不是对象，类型:`, typeof detail)
+          return null
+        }
+        if (!detail.list) {
+          console.warn(`⚠️ ${source} 热歌榜缺少 list 属性，detail=`, detail)
+          return null
+        }
+        if (!Array.isArray(detail.list)) {
+          console.warn(`⚠️ ${source} 热歌榜 list 不是数组，类型:`, typeof detail.list)
+          return null
+        }
         console.log(`✅ 获取 ${source} 热歌榜成功:`, detail.list.length, '首')
         return {
           list: detail.list.slice(0, limit),

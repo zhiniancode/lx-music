@@ -119,9 +119,20 @@ export default {
     if (limit == null) limit = this.limit
     // http://newlyric.kuwo.cn/newlyric.lrc?62355680
     return this.musicSearch(str, page, limit).then(({ body, meta }) => {
+      // 添加防御性检查
+      if (!body || !body.item_song || !Array.isArray(body.item_song)) {
+        console.warn('QQ音乐搜索结果数据格式异常:', { body, meta })
+        return Promise.resolve({
+          list: [],
+          allPage: 1,
+          limit,
+          total: 0,
+          source: 'tx',
+        })
+      }
       let list = this.handleResult(body.item_song)
 
-      this.total = meta.estimate_sum
+      this.total = meta?.estimate_sum || 0
       this.page = page
       this.allPage = Math.ceil(this.total / limit)
 

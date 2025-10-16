@@ -129,8 +129,8 @@ export const MUSIC_TOGGLE_MODE_LIST = [
 
 export const DEFAULT_SETTING = {
   leaderboard: {
-    source: 'wy' as LX.OnlineSource,  // 改为网易云音乐
-    boardId: 'wy__16',  // 对应网易云音乐排行榜ID
+    source: 'wy' as LX.OnlineSource,  // 网易云音乐
+    boardId: 'wy__3778678',  // 网易云热歌榜
   },
 
   songList: {

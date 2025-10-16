@@ -192,6 +192,47 @@ export default {
       }
     }
     // console.log(musicDetail)
+    // 添加防御性检查
+    if (!musicDetail) {
+      console.warn('音乐详情数据为空:', musicDetail)
+      return {
+        total: 0,
+        list: [],
+        limit: this.limit,
+        page,
+        source: 'wy',
+      }
+    }
+    if (typeof musicDetail !== 'object') {
+      console.warn('音乐详情数据类型异常:', typeof musicDetail)
+      return {
+        total: 0,
+        list: [],
+        limit: this.limit,
+        page,
+        source: 'wy',
+      }
+    }
+    if (!musicDetail.list) {
+      console.warn('音乐详情缺少list属性:', musicDetail)
+      return {
+        total: 0,
+        list: [],
+        limit: this.limit,
+        page,
+        source: 'wy',
+      }
+    }
+    if (!Array.isArray(musicDetail.list)) {
+      console.warn('音乐详情list不是数组:', typeof musicDetail.list)
+      return {
+        total: 0,
+        list: [],
+        limit: this.limit,
+        page,
+        source: 'wy',
+      }
+    }
     return {
       total: musicDetail.list.length,
       list: musicDetail.list,

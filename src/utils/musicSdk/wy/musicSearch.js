@@ -87,6 +87,17 @@ export default {
     return this.musicSearch(str, page, limit).then(result => {
       // console.log(result)
       if (!result || result.code !== 200) return this.search(str, page, limit, retryNum)
+      // 添加防御性检查
+      if (!result.result || !result.result.songs) {
+        console.warn('网易云搜索结果数据格式异常:', result)
+        return {
+          list: [],
+          allPage: 1,
+          limit: this.limit,
+          total: 0,
+          source: 'wy',
+        }
+      }
       let list = this.handleResult(result.result.songs || [])
       // console.log(list)
 

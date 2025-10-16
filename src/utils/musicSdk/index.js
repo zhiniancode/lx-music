@@ -119,6 +119,11 @@ export const findMusic = async(musicInfo) => {
   const isEqualsAlbum = (album) => fAlbumName ? fAlbumName == album : true
 
   const result = lists.map(source => {
+    // 添加防御性检查，确保 source 和 source.list 存在且是数组
+    if (!source || !source.list || !Array.isArray(source.list)) {
+      console.warn('音源搜索结果数据格式异常:', source)
+      return null
+    }
     for (const item of source.list) {
       item.name = trimStr(item.name)
       item.singer = trimStr(item.singer)

@@ -229,6 +229,27 @@ export default {
     return p.then(period => {
       return this.listDetailRequest(bangid, period, this.limit).then(resp => {
         if (resp.body.code !== 0) return this.getList(bangid, page, retryNum)
+        // 添加防御性检查
+        if (!resp.body.toplist || !resp.body.toplist.data || !resp.body.toplist.data.songInfoList) {
+          console.warn('QQ音乐排行榜数据结构异常:', resp.body)
+          return {
+            total: 0,
+            list: [],
+            limit: this.limit,
+            page: 1,
+            source: 'tx',
+          }
+        }
+        if (!Array.isArray(resp.body.toplist.data.songInfoList)) {
+          console.warn('QQ音乐排行榜songInfoList不是数组:', typeof resp.body.toplist.data.songInfoList)
+          return {
+            total: 0,
+            list: [],
+            limit: this.limit,
+            page: 1,
+            source: 'tx',
+          }
+        }
         return {
           total: resp.body.toplist.data.songInfoList.length,
           list: this.filterData(resp.body.toplist.data.songInfoList),
@@ -236,7 +257,29 @@ export default {
           page: 1,
           source: 'tx',
         }
+      }).catch(err => {
+        console.error('QQ音乐排行榜请求失败:', err)
+        if (retryNum >= 3) {
+          console.warn('QQ音乐排行榜重试次数已达上限，返回空列表')
+          return {
+            total: 0,
+            list: [],
+            limit: this.limit,
+            page: 1,
+            source: 'tx',
+          }
+        }
+        throw err
       })
+    }).catch(err => {
+      console.error('QQ音乐排行榜getPeriods失败:', err)
+      return {
+        total: 0,
+        list: [],
+        limit: this.limit,
+        page: 1,
+        source: 'tx',
+      }
     })
   },
 

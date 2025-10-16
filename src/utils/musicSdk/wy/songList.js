@@ -100,7 +100,14 @@ export default {
       list = this.filterListDetail(body)
     } else {
       try {
-        list = (await musicDetailApi.getList(body.playlist.trackIds.slice(rangeStart, limit * page).map(trackId => trackId.id))).list
+        const musicDetail = await musicDetailApi.getList(body.playlist.trackIds.slice(rangeStart, limit * page).map(trackId => trackId.id))
+        // 添加防御性检查
+        if (!musicDetail || !musicDetail.list) {
+          console.warn('歌单音乐详情数据为空或格式异常:', musicDetail)
+          list = []
+        } else {
+          list = musicDetail.list
+        }
       } catch (err) {
         console.log(err)
         if (err.message == 'try max num') {
@@ -126,8 +133,14 @@ export default {
       },
     }
   },
-  filterListDetail({ playlist: { tracks }, privileges }) {
-    // console.log(tracks, privileges)
+  filterListDetail({ playlist, privileges }) {
+    // 添加防御性检查
+    if (!playlist || !playlist.tracks || !Array.isArray(playlist.tracks) || !privileges || !Array.isArray(privileges)) {
+      console.warn('歌单详情数据格式异常:', { playlist, privileges })
+      return []
+    }
+    // console.log(playlist.tracks, privileges)
+    const tracks = playlist.tracks
     const list = []
     tracks.forEach((item, index) => {
       const types = []

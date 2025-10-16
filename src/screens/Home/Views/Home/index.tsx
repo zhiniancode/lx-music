@@ -176,11 +176,11 @@ export default () => {
           wy: 'wy__3778678', // 网易云热歌榜
           tx: 'tx__26',      // QQ音乐热歌榜
         },
-        30 // 每个平台取前30首
+        50 // 每个平台取前50首
       )
       
       if (hotMusic && hotMusic.length > 0) {
-        setHotMusic(hotMusic.slice(0, 30)) // 取合并后的前30首
+        setHotMusic(hotMusic.slice(0, 50)) // 取合并后的前50首
         setCurrentBoardIds(prev => ({ ...prev, hot: 'multi_platform_hot' }))
         console.log('🏠 [主页] 本周最热加载完成，共', hotMusic.length, '首（热歌多平台合并）')
       } else {
@@ -190,7 +190,7 @@ export default () => {
           const hotBoardId = 'wy__3778678'
           const hotDetail = await getListDetail(hotBoardId, 1)
           if (hotDetail && hotDetail.list && hotDetail.list.length > 0) {
-            setHotMusic(hotDetail.list.slice(0, 30))
+            setHotMusic(hotDetail.list.slice(0, 50))
             setCurrentBoardIds(prev => ({ ...prev, hot: hotBoardId }))
           }
         } catch (err) {
