@@ -765,7 +765,6 @@ const styles = createStyle({
   // 弹窗样式
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'flex-end',
   },
   modalContent: {
@@ -773,11 +772,6 @@ const styles = createStyle({
     borderTopRightRadius: scaleSizeW(20),
     maxHeight: '80%',
     paddingBottom: scaleSizeW(20),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 20,
   },
   modalHeader: {
     flexDirection: 'row',
