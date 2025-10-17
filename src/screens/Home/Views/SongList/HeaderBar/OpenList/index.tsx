@@ -9,6 +9,7 @@ import Text from '@/components/common/Text'
 import { useI18n } from '@/lang'
 import { navigations } from '@/navigation'
 import commonState from '@/store/common/state'
+import { useTheme } from '@/store/theme/hook'
 
 // export interface OpenListProps {
 //   onTagChange: (name: string, id: string) => void
@@ -20,6 +21,7 @@ export interface OpenListType {
 
 export default forwardRef<OpenListType, {}>((props, ref) => {
   const t = useI18n()
+  const theme = useTheme()
   const modalRef = useRef<ModalType>(null)
   const songlistInfoRef = useRef<{ source: Source }>({ source: 'wy' })
 
@@ -49,8 +51,8 @@ export default forwardRef<OpenListType, {}>((props, ref) => {
 
   return (
     <>
-      <Button style={styles.button} onPress={() => modalRef.current?.show(songlistInfoRef.current.source)}>
-        <Text>{t('songlist_open')}</Text>
+      <Button style={{ ...styles.button, backgroundColor: theme['c-primary-background'], borderColor: theme['c-primary-background'] }} onPress={() => modalRef.current?.show(songlistInfoRef.current.source)}>
+        <Text color={theme['c-primary-font']} style={styles.buttonText}>{t('songlist_open')}</Text>
       </Button>
       <Modal ref={modalRef} onOpenId={handleOpenSonglist} />
     </>
@@ -59,10 +61,16 @@ export default forwardRef<OpenListType, {}>((props, ref) => {
 
 const styles = createStyle({
   button: {
-    // backgroundColor: '#ccc',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingLeft: 12,
-    paddingRight: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    marginHorizontal: 4,
+  },
+  buttonText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
 })

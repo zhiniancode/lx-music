@@ -11,7 +11,10 @@ import Image from '@/components/common/Image'
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const ITEM_MARGIN = 12
 const COLUMN_COUNT = 2
-const ITEM_WIDTH = (SCREEN_WIDTH - ITEM_MARGIN * (COLUMN_COUNT + 1)) / COLUMN_COUNT
+const ITEM_GAP = 12  // 卡片之间的间隔
+// 计算卡片宽度：(屏幕宽度 - 左右padding - 中间间隔) / 列数
+// 使用 space-between 布局，所以要减去间隔
+const ITEM_WIDTH = (SCREEN_WIDTH - ITEM_MARGIN * 2 - ITEM_GAP) / COLUMN_COUNT
 
 export default memo(({ item, index, showSource, onPress }: {
   item: ListInfoItem
@@ -30,7 +33,7 @@ export default memo(({ item, index, showSource, onPress }: {
   }
 
   return (
-    <View style={styles.listItem}>
+    <View style={{ ...styles.listItem, width: ITEM_WIDTH }}>
       <TouchableOpacity 
         activeOpacity={0.9} 
         onPress={handlePress}
@@ -68,7 +71,7 @@ export default memo(({ item, index, showSource, onPress }: {
               size={12}
               color={theme['c-font-label']}
             >
-              播放 {formatPlayCount(item.play_count)}
+              播放 {item.play_count}
             </Text>
           )}
         </View>
@@ -77,22 +80,9 @@ export default memo(({ item, index, showSource, onPress }: {
   )
 })
 
-// 格式化播放次数
-const formatPlayCount = (count: number | string): string => {
-  const num = typeof count === 'string' ? parseInt(count) : count
-  if (isNaN(num)) return '-'
-  
-  if (num >= 100000000) {
-    return (num / 100000000).toFixed(1) + '亿'
-  } else if (num >= 10000) {
-    return (num / 10000).toFixed(1) + '万'
-  }
-  return num.toString()
-}
 
 const styles = createStyle({
   listItem: {
-    width: ITEM_WIDTH,
     marginBottom: ITEM_MARGIN * 1.5,
   },
   cardContainer: {

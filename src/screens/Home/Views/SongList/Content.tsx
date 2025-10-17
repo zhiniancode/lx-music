@@ -17,7 +17,7 @@ interface SonglistInfo {
 export default () => {
   const headerBarRef = useRef<HeaderBarType>(null)
   const listRef = useRef<ListType>(null)
-  const songlistInfo = useRef<SonglistInfo>({ source: 'wy', sortId: '5', tagId: '' })
+  const songlistInfo = useRef<SonglistInfo>({ source: 'wy', sortId: 'hot', tagId: '' })
 
   useEffect(() => {
     void getSongListSetting().then(info => {
@@ -36,9 +36,13 @@ export default () => {
   }
 
   const handleTagChange: HeaderBarProps['onTagChange'] = (name, id) => {
+    console.log('Tag changed:', name, 'id:', id)
     songlistInfo.current.tagId = id
     void saveSongListSetting({ tagName: name, tagId: id })
-    listRef.current?.loadList(songlistInfo.current.source, songlistInfo.current.sortId, id)
+    // 立即加载列表
+    requestAnimationFrame(() => {
+      listRef.current?.loadList(songlistInfo.current.source, songlistInfo.current.sortId, id)
+    })
   }
 
   const handleSourceChange: HeaderBarProps['onSourceChange'] = (source) => {

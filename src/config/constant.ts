@@ -135,7 +135,7 @@ export const DEFAULT_SETTING = {
 
   songList: {
     source: 'wy' as LX.OnlineSource,  // 改为网易云音乐
-    sortId: 'new',
+    sortId: 'hot',  // 使用热度最高的歌单
     tagName: '',
     tagId: '',
   },

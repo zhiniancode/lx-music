@@ -9,7 +9,7 @@ import { onAppLaunched } from './regLaunchedEvent'
 let unRegisterEvent: ReturnType<ReturnType<typeof Navigation.events>['registerScreenPoppedListener']>
 
 const init = (callback: () => void | Promise<void>) => {
-  // Register all screens on launch
+  // Register all screens first (synchronously)
   registerScreens()
 
   if (unRegisterEvent) unRegisterEvent.remove()
@@ -24,8 +24,11 @@ const init = (callback: () => void | Promise<void>) => {
   unRegisterEvent = Navigation.events().registerScreenPoppedListener(({ componentId }) => {
     removeComponentId(componentId)
   })
+  
+  // Register the callback after screens are registered
+  // onAppLaunched will check if app already launched and execute immediately if so
   onAppLaunched(() => {
-    console.log('Register app launched listener')
+    console.log('App launched, executing callback')
     void callback()
   })
 }

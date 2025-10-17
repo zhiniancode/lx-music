@@ -1,11 +1,11 @@
-import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import { ScrollView, TouchableOpacity } from 'react-native'
+import { forwardRef, useImperativeHandle, useMemo, useState } from 'react'
+import { View } from 'react-native'
 import songlistState, { type SortInfo, type Source } from '@/store/songlist/state'
 import { useI18n } from '@/lang'
 import { useTheme } from '@/store/theme/hook'
 import Text from '@/components/common/Text'
 import { createStyle } from '@/utils/tools'
-import { BorderWidths } from '@/theme'
+import DorpDownMenu from '@/components/common/DorpDownMenu'
 
 export interface SortTabProps {
   onSortChange: (id: string) => void
@@ -21,61 +21,75 @@ export default forwardRef<SortTabType, SortTabProps>(({ onSortChange }, ref) => 
   const [activeId, setActiveId] = useState<SortInfo['id']>('')
   const t = useI18n()
   const theme = useTheme()
-  const scrollViewRef = useRef<ScrollView>(null)
 
   useImperativeHandle(ref, () => ({
     setSource(source, activeTab) {
-      scrollViewRef.current?.scrollTo({ x: 0 })
       setSortList(songlistState.sortList[source]!)
       setActiveId(activeTab)
     },
   }))
 
   const sorts = useMemo(() => {
-    return sortList.map(s => ({ label: t(`songlist_${s.tid}`), id: s.id }))
+    return sortList.map(s => ({ label: t(`songlist_${s.tid}`), action: s.id }))
   }, [sortList, t])
 
-  const handleSortChange = (id: string) => {
-    onSortChange(id)
-    setActiveId(id)
+  const activeSort = useMemo(() => {
+    const sort = sortList.find(s => s.id === activeId)
+    return sort ? t(`songlist_${sort.tid}`) : ''
+  }, [sortList, activeId, t])
+
+  const handleSortChange = ({ action }: { action: string }) => {
+    onSortChange(action)
+    setActiveId(action)
+  }
+
+  // 如果只有一个选项，显示为纯文字标签（不可点击）
+  if (sortList.length <= 1) {
+    return (
+      <View style={{ ...styles.button, backgroundColor: theme['c-button-background'], borderColor: theme['c-border-background'] }}>
+        <View style={styles.buttonContent}>
+          <Text style={styles.buttonText} size={13} color={theme['c-font']}>{activeSort}</Text>
+        </View>
+      </View>
+    )
   }
 
   return (
-    <ScrollView ref={scrollViewRef} style={styles.container} keyboardShouldPersistTaps={'always'} horizontal>
-      {
-        sorts.map(s => (
-          <TouchableOpacity style={styles.button} onPress={() => { handleSortChange(s.id) }} key={s.id}>
-            <Text style={{ ...styles.buttonText, borderBottomColor: activeId == s.id ? theme['c-primary-background-active'] : 'transparent' }} color={activeId == s.id ? theme['c-primary-font-active'] : theme['c-font']}>{s.label}</Text>
-          </TouchableOpacity>
-        ))
-      }
-    </ScrollView>
+    <DorpDownMenu
+      menus={sorts}
+      onPress={handleSortChange}
+      fontSize={13}
+      activeId={activeId}
+      btnStyle={{ ...styles.button, backgroundColor: theme['c-button-background'], borderColor: theme['c-border-background'] }}
+    >
+      <View style={styles.buttonContent} pointerEvents="none">
+        <Text style={styles.buttonText} size={13} color={theme['c-font']}>{activeSort}</Text>
+        <Text style={styles.arrow} color={theme['c-font-label']}> ▼</Text>
+      </View>
+    </DorpDownMenu>
   )
 })
 
 
 const styles = createStyle({
-  container: {
-    flexGrow: 1,
-    flexShrink: 1,
-    // paddingLeft: 5,
-    // paddingRight: 5,
-  },
   button: {
-    // height: 38,
-    // lineHeight: 38,
+    paddingLeft: 12,
+    paddingRight: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    marginHorizontal: 4,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingLeft: 14,
-    paddingRight: 14,
-    // width: 80,
-    // backgroundColor: 'rgba(0,0,0,0.1)',
   },
   buttonText: {
-    // height: 38,
-    // lineHeight: 38,
     textAlign: 'center',
-    paddingHorizontal: 2,
-    paddingVertical: 3,
-    borderBottomWidth: BorderWidths.normal3,
+  },
+  arrow: {
+    fontSize: 10,
+    marginLeft: 2,
   },
 })

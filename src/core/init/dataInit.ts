@@ -82,7 +82,8 @@ export default async(appSetting: LX.AppSetting) => {
   // 初始化预置音源
   await initDefaultUserApi(appSetting)
   
-  setNavActiveId((await getViewPrevState()).id)
+  // 始终默认打开主页，不恢复上次退出时的页面
+  setNavActiveId('nav_home')
   void unlink(TEMP_FILE_PATH)
   // await initPrevPlayInfo(appSetting).catch(err => log.error(err)) // 初始化上次的歌曲播放信息
 }

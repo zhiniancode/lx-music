@@ -112,6 +112,7 @@ export default () => {
             ref={sourceSelectorRef} 
             onSourceChange={handleSourceChange} 
             center 
+            minimal
           />
         </View>
         

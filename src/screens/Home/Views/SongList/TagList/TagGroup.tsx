@@ -15,19 +15,22 @@ export interface TagGroupProps {
 
 export default ({ name, list, onTagChange, activeId }: TagGroupProps) => {
   const theme = useTheme()
+  console.log('TagGroup render - name:', name, 'list count:', list.length, 'activeId:', activeId)
+  
   return (
-    <View>
+    <View style={styles.groupContainer}>
       {
         name
           ? <Text style={styles.tagTypeTitle} color={theme['c-font-label']}>{name}</Text>
           : null
       }
       <View style={styles.tagTypeList}>
-        {list.map(item => (
-          activeId == item.id
+        {list.map(item => {
+          console.log('Tag item:', item.name, 'id:', item.id, 'active:', activeId == item.id)
+          return activeId == item.id
             ? (
-                <View style={{ ...styles.tagButton, backgroundColor: theme['c-button-background'] }} key={item.id}>
-                  <Text style={styles.tagButtonText} color={theme['c-primary-font-active']}>{item.name}</Text>
+                <View style={{ ...styles.tagButton, ...styles.tagButtonActive, backgroundColor: theme['c-primary-background'] }} key={item.id}>
+                  <Text style={styles.tagButtonText} color={theme['c-primary-font']}>{item.name}</Text>
                 </View>
               )
             : (
@@ -36,36 +39,45 @@ export default ({ name, list, onTagChange, activeId }: TagGroupProps) => {
                   key={item.id}
                   onPress={() => { onTagChange(item.name, item.id) }}
                 >
-                  <Text style={styles.tagButtonText} color={theme['c-font']} >{item.name}</Text>
+                  <Text style={styles.tagButtonText} color={theme['c-font']}>{item.name}</Text>
                 </Button>
               )
-
-        ))}
+        })}
       </View>
     </View>
   )
 }
 
 const styles = createStyle({
+  groupContainer: {
+    marginBottom: 8,
+  },
   tagTypeTitle: {
-    marginTop: 15,
+    marginTop: 8,
     marginBottom: 10,
+    fontSize: 13,
+    fontWeight: '500',
   },
   tagTypeList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    marginLeft: -6,
+    marginRight: -6,
   },
   tagButton: {
-    // marginRight: 10,
-    borderRadius: 4,
-    marginRight: 10,
-    marginBottom: 10,
+    borderRadius: 18,
+    marginHorizontal: 6,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  tagButtonActive: {
+    borderColor: 'transparent',
   },
   tagButtonText: {
     fontSize: 13,
-    paddingLeft: 12,
-    paddingRight: 12,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    fontWeight: '400',
   },
 })

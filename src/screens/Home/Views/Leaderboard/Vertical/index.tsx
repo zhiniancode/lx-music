@@ -173,18 +173,12 @@ export default () => {
 
     isUnmountedRef.current = false
     void getLeaderboardSetting().then(({ source, boardId }) => {
-      // 检查音源是否支持排行榜，如果不支持则使用默认音源
-      const supportedSources = ['wy', 'tx'] // 只支持网易云和QQ音乐
-      let finalSource = source
-      let finalBoardId = boardId
+      // 始终默认使用网易云音乐
+      const finalSource = 'wy'
+      const finalBoardId = 'wy__3778678' // 网易云热歌榜
       
-      if (!supportedSources.includes(source)) {
-        console.warn(`音源 ${source} 不支持排行榜，切换到网易云`)
-        finalSource = 'wy'
-        finalBoardId = 'wy__3778678' // 网易云热歌榜
-        // 保存新的设置
-        void saveLeaderboardSetting({ source: finalSource, boardId: finalBoardId })
-      }
+      // 保存设置，确保下次也是网易云
+      void saveLeaderboardSetting({ source: finalSource, boardId: finalBoardId })
       
       boundInfo.current.source = finalSource
       boundInfo.current.id = finalBoardId
