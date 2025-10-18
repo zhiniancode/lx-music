@@ -5,6 +5,7 @@ import SongList from '../Views/SongList'
 import Mylist from '../Views/Mylist'
 import Leaderboard from '../Views/Leaderboard'
 import Setting from '../Views/Setting'
+import Artist from '../Views/Artist'
 import commonState, { type InitState as CommonState } from '@/store/common/state'
 import { createStyle } from '@/utils/tools'
 import PagerView, { type PageScrollStateChangedNativeEvent, type PagerViewOnPageSelectedEvent } from 'react-native-pager-view'
@@ -122,6 +123,41 @@ const LeaderboardPage = () => {
 
   return visible ? component : null
 }
+const ArtistPage = () => {
+  const [visible, setVisible] = useState(commonState.navActiveId == 'nav_artist')
+  const component = useMemo(() => <Artist />, [])
+  useEffect(() => {
+    let currentId: CommonState['navActiveId'] = commonState.navActiveId
+    const handleNavIdUpdate = (id: CommonState['navActiveId']) => {
+      currentId = id
+      if (id == 'nav_artist') {
+        requestAnimationFrame(() => {
+          setVisible(true)
+        })
+      }
+    }
+    const handleHide = () => {
+      if (currentId != 'nav_setting') return
+      setVisible(false)
+    }
+    const handleConfigUpdated = (keys: Array<keyof LX.AppSetting>) => {
+      if (keys.some(k => hideKeys.includes(k))) handleHide()
+    }
+    global.state_event.on('navActiveIdUpdated', handleNavIdUpdate)
+    global.state_event.on('themeUpdated', handleHide)
+    global.state_event.on('languageChanged', handleHide)
+    global.state_event.on('configUpdated', handleConfigUpdated)
+
+    return () => {
+      global.state_event.off('navActiveIdUpdated', handleNavIdUpdate)
+      global.state_event.off('themeUpdated', handleHide)
+      global.state_event.off('languageChanged', handleHide)
+      global.state_event.on('configUpdated', handleConfigUpdated)
+    }
+  }, [])
+
+  return visible ? component : null
+}
 const MylistPage = () => {
   const [visible, setVisible] = useState(commonState.navActiveId == 'nav_love')
   const component = useMemo(() => <Mylist />, [])
@@ -181,13 +217,15 @@ const viewMap = {
   nav_home: 0,
   nav_songlist: 1,
   nav_top: 2,
-  nav_love: 3,
-  nav_setting: 4,
+  nav_artist: 3,
+  nav_love: 4,
+  nav_setting: 5,
 }
 const indexMap = [
   'nav_home',
   'nav_songlist',
   'nav_top',
+  'nav_artist',
   'nav_love',
   'nav_setting',
 ] as const
@@ -281,6 +319,9 @@ const Main = () => {
       </View>
       <View collapsable={false} key="nav_top" style={styles.pageStyle}>
         <LeaderboardPage />
+      </View>
+      <View collapsable={false} key="nav_artist" style={styles.pageStyle}>
+        <ArtistPage />
       </View>
       <View collapsable={false} key="nav_love" style={styles.pageStyle}>
         <MylistPage />

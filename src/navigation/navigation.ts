@@ -6,6 +6,8 @@ import {
   SEARCH_SCREEN,
   PLAY_DETAIL_SCREEN,
   SONGLIST_DETAIL_SCREEN,
+  ARTIST_DETAIL_SCREEN,
+  ALBUM_DETAIL_SCREEN,
   COMMENT_SCREEN,
   // SETTING_SCREEN,
 } from './screenNames'
@@ -478,6 +480,147 @@ export function pushCommentScreen(componentId: string | COMPONENT_IDS) {
       },
     })
   })
+}
+
+export function showArtistDetailScreen(componentId: string | COMPONENT_IDS, artistId: number, artistName: string) {
+  const { setArtistDetailProps } = require('@/screens/ArtistDetail/state')
+  setArtistDetailProps({ artistId, artistName })
+  
+  requestAnimationFrame(() => {
+    const theme = themeState.theme
+    
+    // 如果传入的是逻辑 ID，从 commonState 中获取真实的 componentId
+    const realComponentId = Object.values(COMPONENT_IDS).includes(componentId as COMPONENT_IDS)
+      ? commonState.componentIds[componentId as COMPONENT_IDS]
+      : componentId
+    
+    if (!realComponentId) {
+      console.error('showArtistDetailScreen: componentId not found', componentId)
+      return
+    }
+
+    void Navigation.push(realComponentId, {
+      component: {
+        name: ARTIST_DETAIL_SCREEN,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0,
+            drawBehind: false,
+          },
+          statusBar: {
+            drawBehind: true,
+            visible: true,
+            style: getStatusBarStyle(theme.isDark),
+            backgroundColor: 'transparent',
+          },
+          navigationBar: {
+            backgroundColor: theme['c-content-background'],
+          },
+          layout: {
+            componentBackgroundColor: theme['c-content-background'],
+          },
+          animations: {
+            push: {
+              content: {
+                translationX: {
+                  from: windowSizeTools.getSize().width,
+                  to: 0,
+                  duration: 300,
+                },
+              },
+            },
+            pop: {
+              content: {
+                translationX: {
+                  from: 0,
+                  to: windowSizeTools.getSize().width,
+                  duration: 300,
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+  })
+}
+
+export function showAlbumDetailScreen(componentId: string | COMPONENT_IDS, albumId: number, albumName: string, source: LX.Source) {
+  const { setAlbumDetailProps } = require('@/screens/AlbumDetail/state')
+  setAlbumDetailProps({ albumId, albumName, source })
+  
+  requestAnimationFrame(() => {
+    const theme = themeState.theme
+    
+    // 如果传入的是逻辑 ID，从 commonState 中获取真实的 componentId
+    const realComponentId = Object.values(COMPONENT_IDS).includes(componentId as COMPONENT_IDS)
+      ? commonState.componentIds[componentId as COMPONENT_IDS]
+      : componentId
+    
+    if (!realComponentId) {
+      console.error('showAlbumDetailScreen: componentId not found', componentId)
+      return
+    }
+
+    void Navigation.push(realComponentId, {
+      component: {
+        name: ALBUM_DETAIL_SCREEN,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0,
+            drawBehind: false,
+          },
+          statusBar: {
+            drawBehind: true,
+            visible: true,
+            style: getStatusBarStyle(theme.isDark),
+            backgroundColor: 'transparent',
+          },
+          navigationBar: {
+            backgroundColor: theme['c-content-background'],
+          },
+          layout: {
+            componentBackgroundColor: theme['c-content-background'],
+          },
+          animations: {
+            push: {
+              content: {
+                translationX: {
+                  from: windowSizeTools.getSize().width,
+                  to: 0,
+                  duration: 300,
+                },
+              },
+            },
+            pop: {
+              content: {
+                translationX: {
+                  from: 0,
+                  to: windowSizeTools.getSize().width,
+                  duration: 300,
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+  })
+}
+
+export function goBack(componentId: string | COMPONENT_IDS) {
+  // 如果传入的是逻辑 ID，从 commonState 中获取真实的 componentId
+  const realComponentId = Object.values(COMPONENT_IDS).includes(componentId as COMPONENT_IDS)
+    ? commonState.componentIds[componentId as COMPONENT_IDS]
+    : componentId
+  
+  if (!realComponentId) {
+    console.error('goBack: componentId not found', componentId)
+    return
+  }
+  void Navigation.pop(realComponentId)
 }
 
 // export function pushSettingScreen(componentId: string) {

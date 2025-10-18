@@ -6,6 +6,8 @@ import { apis } from '../api-source'
 import hotSearch from './hotSearch'
 import comment from './comment'
 import tipSearch from './tipSearch'
+import artist from './artist'
+import album from './album'
 
 const tx = {
   tipSearch,
@@ -14,6 +16,8 @@ const tx = {
   musicSearch,
   hotSearch,
   comment,
+  artist,
+  album,
 
   getMusicUrl(songInfo, type) {
     return apis('tx').getMusicUrl(songInfo, type)

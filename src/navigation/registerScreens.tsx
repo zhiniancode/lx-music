@@ -7,6 +7,8 @@ import {
   Search,
   PlayDetail,
   SonglistDetail,
+  ArtistDetail,
+  AlbumDetail,
   Comment,
   // Setting,
 } from '@/screens'
@@ -17,6 +19,8 @@ import {
   SEARCH_SCREEN,
   PLAY_DETAIL_SCREEN,
   SONGLIST_DETAIL_SCREEN,
+  ARTIST_DETAIL_SCREEN,
+  ALBUM_DETAIL_SCREEN,
   COMMENT_SCREEN,
   VERSION_MODAL,
   PACT_MODAL,
@@ -46,6 +50,8 @@ export default () => {
   Navigation.registerComponent(SEARCH_SCREEN, () => WrappedComponent(Search))
   Navigation.registerComponent(PLAY_DETAIL_SCREEN, () => WrappedComponent(PlayDetail))
   Navigation.registerComponent(SONGLIST_DETAIL_SCREEN, () => WrappedComponent(SonglistDetail))
+  Navigation.registerComponent(ARTIST_DETAIL_SCREEN, () => WrappedComponent(ArtistDetail))
+  Navigation.registerComponent(ALBUM_DETAIL_SCREEN, () => WrappedComponent(AlbumDetail))
   Navigation.registerComponent(COMMENT_SCREEN, () => WrappedComponent(Comment))
   Navigation.registerComponent(VERSION_MODAL, () => WrappedComponent(VersionModal))
   Navigation.registerComponent(PACT_MODAL, () => WrappedComponent(PactModal))
