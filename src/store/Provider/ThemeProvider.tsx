@@ -2,6 +2,7 @@ import { memo, useEffect, useState } from 'react'
 
 import themeState, { ThemeContext } from '../theme/state'
 import TipDialogManager from '@/components/common/TipDialogManager'
+import ConfirmDialogManager from '@/components/common/ConfirmDialogManager'
 
 
 export default memo(({ children }: {
@@ -25,6 +26,7 @@ export default memo(({ children }: {
     <ThemeContext.Provider value={theme}>
       {children}
       <TipDialogManager />
+      <ConfirmDialogManager />
     </ThemeContext.Provider>
   )
 })

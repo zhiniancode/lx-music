@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useImperativeHandle, useRef, useState, Fragment } from 'react'
 import Dialog, { type DialogType } from '@/components/common/Dialog'
 import { toast } from '@/utils/tools'
 import Title from './Title'
@@ -74,13 +74,15 @@ export default forwardRef<MusicAddModalType, MusicAddModalProps>(({ onAdded }, r
   }
 
   return (
-    <Dialog ref={dialogRef} onHide={handleHide}>
+    <Dialog ref={dialogRef} onHide={handleHide} height="30%">
       {
         selectInfo.musicInfo
-          ? (<>
-              <Title musicInfo={selectInfo.musicInfo} isMove={selectInfo.isMove} />
-              <List musicInfo={selectInfo.musicInfo} onPress={handleSelect} />
-            </>)
+          ? (
+              <Fragment>
+                <Title musicInfo={selectInfo.musicInfo} isMove={selectInfo.isMove} />
+                <List musicInfo={selectInfo.musicInfo} onPress={handleSelect} />
+              </Fragment>
+            )
           : null
       }
     </Dialog>

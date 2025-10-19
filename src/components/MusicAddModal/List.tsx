@@ -64,11 +64,13 @@ export default ({ musicInfo, onPress }: {
   }, [windowSize])
 
   return (
-    <ScrollView style={{ flexGrow: 0 }}>
-      <View style={styles.list} onStartShouldSetResponder={() => true}>
-        { allList.map(info => <ListItem key={info.id} listInfo={info} musicInfo={musicInfo} onPress={onPress} width={itemWidth} />) }
-        <EditListItem itemWidth={itemWidth} />
-      </View>
-    </ScrollView>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={{ flex: 1 }}>
+        <View style={styles.list} onStartShouldSetResponder={() => true}>
+          { allList.map(info => <ListItem key={info.id} listInfo={info} musicInfo={musicInfo} onPress={onPress} width={itemWidth} />) }
+          <EditListItem itemWidth={itemWidth} />
+        </View>
+      </ScrollView>
+    </View>
   )
 }

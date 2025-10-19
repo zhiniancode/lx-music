@@ -80,7 +80,7 @@ const Header = () => {
     <View style={{ paddingTop: statusBarHeight, backgroundColor: theme['c-primary-light-700-alpha-500'] }}>
       <View style={styles.header}>
         <Icon name="logo" color={theme['c-primary-dark-100-alpha-300']} size={28} />
-        <Text style={styles.headerText} size={28} color={theme['c-primary-dark-100-alpha-300']}>LX Music</Text>
+        <Text style={styles.headerText} size={28} color={theme['c-primary-dark-100-alpha-300']}>留声</Text>
       </View>
     </View>
   )
@@ -143,26 +143,15 @@ export default memo(() => {
       <Header />
       <ScrollView style={styles.menus}>
         <View style={styles.list}>
-          <View style={styles.infoSection}>
-            <Text style={styles.infoText} size={13} color={theme['c-font-label']}>
-              主要导航已移至底部导航栏
-            </Text>
-            <Text style={styles.infoText} size={13} color={theme['c-font-label']}>
-              点击顶部搜索图标进入搜索页面
-            </Text>
-          </View>
+          <MenuItem id="nav_setting" icon="setting" onPress={handlePress} />
         </View>
       </ScrollView>
 
-      <View style={styles.auxiliaryMenus}>
-        {
-          showBackBtn ? <MenuItem id="back_home" icon="home" onPress={handlePress} /> : null
-        }
-        <MenuItem id="nav_setting" icon="setting" onPress={handlePress} />
-        {
-          showExitBtn ? <MenuItem id="nav_exit" icon="exit2" onPress={handlePress} /> : null
-        }
-      </View>
+      {showBackBtn && (
+        <View style={styles.auxiliaryMenus}>
+          <MenuItem id="back_home" icon="home" onPress={handlePress} />
+        </View>
+      )}
     </View>
   )
 })

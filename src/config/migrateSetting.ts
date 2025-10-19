@@ -3,6 +3,11 @@ import { compareVer } from '@/utils'
 export default (setting: any): Partial<LX.AppSetting> => {
   setting = { ...setting }
 
+  // 清理废弃的自定义启动画面设置
+  if (setting['common.customLoadingScreen'] !== undefined) {
+    delete setting['common.customLoadingScreen']
+  }
+
   // 迁移 v1 之前的配置
   if (compareVer(setting.version as string, '2.0') < 0) {
     setting['player.startupAutoPlay'] = setting.startupAutoPlay

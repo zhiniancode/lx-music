@@ -15,18 +15,18 @@ const styles = createStyle({
   modalView: {
     width: '100%',
     maxWidth: 320,
-    borderRadius: 20,
+    borderRadius: 16,
     paddingTop: 28,
     paddingBottom: 20,
     paddingHorizontal: 24,
-    elevation: 8,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   messageContainer: {
     marginBottom: 24,
@@ -38,22 +38,18 @@ const styles = createStyle({
     letterSpacing: 0.3,
   },
   button: {
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    elevation: 2,
+    alignSelf: 'center',
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 20,
+    minWidth: 80,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
+    justifyContent: 'center',
+    borderWidth: 1,
   },
   buttonText: {
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 })
 
@@ -92,7 +88,7 @@ export default forwardRef<TipDialogType, TipDialogProps>(({
       onHide={onHide} 
       keyHide={true} 
       bgHide={bgHide} 
-      bgColor="rgba(0,0,0,0.5)" 
+      bgColor="rgba(0,0,0,0.2)" 
       ref={modalRef}
     >
       <View style={styles.centeredView}>
@@ -116,14 +112,15 @@ export default forwardRef<TipDialogType, TipDialogProps>(({
           <TouchableOpacity
             style={{
               ...styles.button,
-              backgroundColor: theme['c-primary-font-active'],
+              backgroundColor: theme['c-primary-light-100'],
+              borderColor: theme['c-primary-light-100'],
             }}
             activeOpacity={0.85}
             onPress={handleClose}
           >
             <Text 
               style={styles.buttonText} 
-              size={16} 
+              size={14} 
               color="#FFFFFF"
             >
               {btnText}

@@ -1,3 +1,5 @@
+export const LOADING_SCREEN = 'lxm.LoadingScreen'
+export const LOGIN_SCREEN = 'lxm.LoginScreen'
 export const HOME_SCREEN = 'lxm.HomeScreen'
 export const SEARCH_SCREEN = 'lxm.SearchScreen'
 export const PLAY_DETAIL_SCREEN = 'lxm.PlayDetailScreen'

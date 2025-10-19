@@ -50,22 +50,59 @@ void Promise.all([getFontSize(), windowSizeTools.init()]).then(async([fontSize])
   const { init: initNavigation, navigations } = await import('@/navigation')
 
   initNavigation(async() => {
-    await handleInit()
+    // 先显示加载屏幕
+    await navigations.pushLoadingScreen().catch((err: any) => {
+      console.error('Failed to show loading screen:', err)
+    })
+
+    // 开始计时，确保加载屏幕至少显示一段时间
+    const { createMinLoadingTimeWaiter, preloadData } = await import('@/core/init/preload')
+    const waitForMinTime = createMinLoadingTimeWaiter(1000) // 至少显示1秒
+
+    // 并行执行：初始化 + 预加载数据
+    await Promise.all([
+      handleInit(),
+      preloadData(), // 预加载热门搜索、排行榜等数据
+    ])
+
     if (!isInited) return
     // import('@/utils/nativeModules/cryptoTest')
 
-    await navigations.pushHomeScreen().then(() => {
-      void handlePushedHomeScreen()
-    }).catch((err: any) => {
-      void tipDialog({
-        title: 'Error',
-        message: err.message,
-        btnText: 'Exit',
-        bgClose: false,
-      }).then(() => {
-        exitApp()
+    // 等待最小显示时间（确保动画效果完整展示）
+    await waitForMinTime()
+
+    // 检查登录状态，决定显示哪个页面
+    const authState = await import('@/store/auth/state')
+    const isLoggedIn = authState.default.isLoggedIn
+
+    // 根据登录状态显示不同的页面
+    if (isLoggedIn) {
+      // 已登录，显示主页
+      await navigations.pushHomeScreen().then(() => {
+        void handlePushedHomeScreen()
+      }).catch((err: any) => {
+        void tipDialog({
+          title: 'Error',
+          message: err.message,
+          btnText: 'Exit',
+          bgClose: false,
+        }).then(() => {
+          exitApp()
+        })
       })
-    })
+    } else {
+      // 未登录，显示登录页面
+      await navigations.pushLoginScreen().catch((err: any) => {
+        void tipDialog({
+          title: 'Error',
+          message: err.message,
+          btnText: 'Exit',
+          bgClose: false,
+        }).then(() => {
+          exitApp()
+        })
+      })
+    }
   })
 }).catch((err) => {
   void tipDialog({

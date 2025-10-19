@@ -2,6 +2,8 @@ import { Navigation } from 'react-native-navigation'
 // import { InteractionManager } from 'react-native'
 
 import {
+  LOADING_SCREEN,
+  LOGIN_SCREEN,
   HOME_SCREEN,
   SEARCH_SCREEN,
   PLAY_DETAIL_SCREEN,
@@ -21,6 +23,83 @@ import { type ListInfoItem } from '@/store/songlist/state'
 
 // const store = getStore()
 // const getTheme = () => getter('common', 'theme')(store.getState())
+
+export async function pushLoadingScreen() {
+  const theme = themeState.theme
+  return Navigation.setRoot({
+    root: {
+      stack: {
+        children: [{
+          component: {
+            name: LOADING_SCREEN,
+            options: {
+              topBar: {
+                visible: false,
+                height: 0,
+                drawBehind: false,
+              },
+              statusBar: {
+                drawBehind: true,
+                visible: true,
+                style: getStatusBarStyle(theme.isDark),
+                backgroundColor: 'transparent',
+              },
+              navigationBar: {
+                backgroundColor: theme['c-content-background'],
+              },
+              layout: {
+                componentBackgroundColor: theme['c-content-background'],
+              },
+              animations: {
+                setRoot: {
+                  alpha: {
+                    from: 0,
+                    to: 1,
+                    duration: 300,
+                  },
+                },
+              },
+            },
+          },
+        }],
+      },
+    },
+  })
+}
+
+export async function pushLoginScreen() {
+  const theme = themeState.theme
+  return Navigation.setRoot({
+    root: {
+      stack: {
+        children: [{
+          component: {
+            name: LOGIN_SCREEN,
+            options: {
+              topBar: {
+                visible: false,
+                height: 0,
+                drawBehind: false,
+              },
+              statusBar: {
+                drawBehind: true,
+                visible: true,
+                style: getStatusBarStyle(theme.isDark),
+                backgroundColor: 'transparent',
+              },
+              navigationBar: {
+                backgroundColor: theme['c-content-background'],
+              },
+              layout: {
+                componentBackgroundColor: theme['c-content-background'],
+              },
+            },
+          },
+        }],
+      },
+    },
+  })
+}
 
 export async function pushHomeScreen() {
   /*

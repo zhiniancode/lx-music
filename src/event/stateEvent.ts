@@ -121,6 +121,18 @@ export class StateEvent extends Event {
   sourceNamesUpdated(names: CommonState['sourceNames']) {
     this.emit('sourceNamesUpdated', names)
   }
+
+  authUpdated(userInfo: any) {
+    this.emit('authUpdated', userInfo)
+  }
+
+  syncStatusUpdated(isSyncing: boolean) {
+    this.emit('syncStatusUpdated', isSyncing)
+  }
+
+  lastSyncTimeUpdated(time: number) {
+    this.emit('lastSyncTimeUpdated', time)
+  }
 }
 
 

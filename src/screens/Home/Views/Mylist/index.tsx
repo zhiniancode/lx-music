@@ -460,12 +460,20 @@ export default () => {
 
   const handleMusicAdd = useCallback((info: any) => {
     isMoveRef.current = false
-    musicAddModalRef.current?.show({ musicList: [info.musicInfo] })
+    musicAddModalRef.current?.show({ 
+      musicInfo: info.musicInfo,
+      listId: info.listId,
+      isMove: false
+    })
   }, [])
 
   const handleMusicMove = useCallback((info: any) => {
     isMoveRef.current = true
-    musicAddModalRef.current?.show({ musicList: [info.musicInfo] })
+    musicAddModalRef.current?.show({ 
+      musicInfo: info.musicInfo,
+      listId: info.listId,
+      isMove: true
+    })
   }, [])
 
   const handleEditMetadata = useCallback((info: any) => {

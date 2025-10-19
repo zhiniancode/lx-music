@@ -43,7 +43,6 @@ yarn-error.log
 buck-out/
 \.buckd/
 *.keystore
-!debug.keystore
 
 # fastlane
 #
@@ -66,3 +65,6 @@ buck-out/
 
 # testing
 /coverage
+
+# Cloud server config (contains sensitive IP)
+src/config/cloudConfig.ts

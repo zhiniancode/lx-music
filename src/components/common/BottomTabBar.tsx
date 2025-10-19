@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useMemo } from 'react'
 import { TouchableOpacity, View } from 'react-native'
 import { useNavActiveId } from '@/store/common/hook'
 import { useTheme } from '@/store/theme/hook'
@@ -8,17 +8,19 @@ import { setNavActiveId } from '@/core/common'
 import type { InitState } from '@/store/common/state'
 import Text from '@/components/common/Text'
 import { useI18n } from '@/lang'
+import { useIsLoggedIn } from '@/store/auth/hook'
 
 // 底部导航菜单项
 const TAB_MENUS = [
   { id: 'nav_home', icon: 'home' },
   { id: 'nav_songlist', icon: 'album' },
-  { id: 'nav_top', icon: 'leaderboard' },
   { id: 'nav_artist', icon: 'add-music' },
+  { id: 'nav_top', icon: 'leaderboard' },
   { id: 'nav_love', icon: 'love' },
-] as const
+  { id: 'nav_login', icon: 'logo' },
+]
 
-type TabIdType = typeof TAB_MENUS[number]['id']
+type TabIdType = 'nav_home' | 'nav_songlist' | 'nav_artist' | 'nav_top' | 'nav_love' | 'nav_login' | 'nav_my'
 
 interface TabItemProps {
   id: TabIdType
@@ -30,6 +32,17 @@ interface TabItemProps {
 const TabItem = memo(({ id, icon, isActive, onPress }: TabItemProps) => {
   const t = useI18n()
   const theme = useTheme()
+  const iconColor = isActive ? theme['c-primary-font-active'] : theme['c-font-label']
+  
+  const renderIcon = () => {
+    return (
+      <Icon 
+        name={icon} 
+        size={24} 
+        color={iconColor} 
+      />
+    )
+  }
   
   return (
     <TouchableOpacity 
@@ -37,15 +50,11 @@ const TabItem = memo(({ id, icon, isActive, onPress }: TabItemProps) => {
       onPress={() => onPress(id)}
       activeOpacity={0.7}
     >
-      <Icon 
-        name={icon} 
-        size={24} 
-        color={isActive ? theme['c-primary-font-active'] : theme['c-font-label']} 
-      />
+      {renderIcon()}
       <Text 
         style={styles.tabText} 
         size={11}
-        color={isActive ? theme['c-primary-font-active'] : theme['c-font-label']}
+        color={iconColor}
       >
         {t(id)}
       </Text>
@@ -56,6 +65,17 @@ const TabItem = memo(({ id, icon, isActive, onPress }: TabItemProps) => {
 const BottomTabBar = memo(() => {
   const theme = useTheme()
   const activeId = useNavActiveId()
+  const isLoggedIn = useIsLoggedIn()
+
+  // 根据登录状态动态生成导航菜单
+  const tabMenus = useMemo(() => {
+    const menus = [...TAB_MENUS]
+    // 如果已登录，将最后一个导航项改为"我的"
+    if (isLoggedIn) {
+      menus[menus.length - 1] = { id: 'nav_my' as TabIdType, icon: 'logo' }
+    }
+    return menus
+  }, [isLoggedIn])
 
   const handlePress = (id: TabIdType) => {
     if (activeId === id) return
@@ -64,10 +84,10 @@ const BottomTabBar = memo(() => {
 
   return (
     <View style={{ ...styles.container, backgroundColor: theme['c-content-background'] }}>
-      {TAB_MENUS.map(menu => (
+      {tabMenus.map(menu => (
         <TabItem 
           key={menu.id} 
-          id={menu.id} 
+          id={menu.id as TabIdType} 
           icon={menu.icon} 
           isActive={activeId === menu.id}
           onPress={handlePress} 

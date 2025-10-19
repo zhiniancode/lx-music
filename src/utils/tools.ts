@@ -190,24 +190,17 @@ export const confirmDialog = async({
   confirmButtonText = global.i18n.t('dialog_confirm'),
   bgClose = true,
 }) => {
+  // 使用自定义确认对话框
+  const { showConfirmDialog } = await import('@/components/common/ConfirmDialogManager')
   return new Promise<boolean>(resolve => {
-    Alert.alert(title, message, [
-      {
-        text: cancelButtonText,
-        onPress() {
-          resolve(false)
-        },
-      },
-      {
-        text: confirmButtonText,
-        onPress() {
-          resolve(true)
-        },
-      },
-    ], {
-      cancelable: bgClose,
-      onDismiss() {
-        resolve(false)
+    showConfirmDialog({
+      title,
+      message,
+      cancelButtonText,
+      confirmButtonText,
+      bgHide: bgClose,
+      onResult: (confirmed) => {
+        resolve(confirmed)
       },
     })
   })
