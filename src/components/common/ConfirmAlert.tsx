@@ -41,7 +41,7 @@ const styles = createStyle({
     paddingLeft: 10,
     paddingRight: 10,
     alignItems: 'center',
-    borderRadius: 4,
+    borderRadius: 8,
   },
   btnDirection: {
     marginRight: 15,

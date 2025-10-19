@@ -48,7 +48,12 @@ export default forwardRef<ActiveListType, ActiveListProps>(({ onShowSearchBar, o
     },
   }))
 
-  const showList = () => {
+  const showList = (e: any) => {
+    console.log('👆 点击显示列表按钮')
+    // 阻止事件冒泡
+    if (e && e.stopPropagation) {
+      e.stopPropagation()
+    }
     global.app_event.changeLoveListVisible(true)
   }
 
@@ -63,7 +68,7 @@ export default forwardRef<ActiveListType, ActiveListProps>(({ onShowSearchBar, o
       <Icon style={styles.currentListIcon} color={theme['c-button-font']} name="chevron-right" size={12} />
       { fetching ? <Loading color={theme['c-button-font']} style={styles.loading} /> : null }
       <Text style={styles.currentListText} numberOfLines={1} color={theme['c-button-font']}>{currentListName}</Text>
-      <TouchableOpacity style={styles.currentListBtns} onPress={onShowSearchBar}>
+      <TouchableOpacity style={styles.currentListBtns} onPress={(e) => { e.stopPropagation(); onShowSearchBar(); }}>
         <Icon color={theme['c-button-font']} name="search-2" />
       </TouchableOpacity>
     </TouchableOpacity>

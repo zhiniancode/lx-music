@@ -24,7 +24,7 @@ import { requestMsg } from '@/utils/message'
 import { getRandom } from '@/utils/common'
 import { filterList } from './utils'
 import BackgroundTimer from 'react-native-background-timer'
-import { checkIgnoringBatteryOptimization, checkNotificationPermission, debounceBackgroundTimer } from '@/utils/tools'
+import { checkIgnoringBatteryOptimization, checkNotificationPermission, debounceBackgroundTimer, tipDialog } from '@/utils/tools'
 import { LIST_IDS } from '@/config/constant'
 import { addListMusics, removeListMusics } from '@/core/list'
 import { addDislikeInfo } from '@/core/dislikeList'
@@ -145,6 +145,17 @@ export const setMusicUrl = (musicInfo: LX.Music.MusicInfo | LX.Download.ListItem
     setStatusText(err.message as string)
     global.app_event.error()
     addDelayNextTimeout()
+    
+    // 检查是否是版权保护相关的错误，显示友好提示
+    const errorMsg = err.message as string
+    if (errorMsg.includes('get music url failed') || 
+        errorMsg.includes('换源失败') || 
+        errorMsg.includes('Failed to change the source')) {
+      void tipDialog({
+        message: global.i18n.t('play_copyright_tip'),
+        btnText: global.i18n.t('ok'),
+      })
+    }
   }).finally(() => {
     if (musicInfo === playerState.playMusicInfo.musicInfo) {
       global.lx.gettingUrlId = ''

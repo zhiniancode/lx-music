@@ -491,6 +491,7 @@
   "toggle_source": "Change Source",
   "toggle_source_failed": "Failed to change the source. Please try to manually search for the song on the search page by specifying another service.",
   "toggle_source_try": "Try switching to another source...",
+  "play_copyright_tip": "This song cannot be played directly, please search for it in the search bar",
   "understand": "Already understood 👌",
   "user_api__init_failed_alert": "Failed to initialize Music API \"{name}\":",
   "user_api_add_failed_tip": "Invalid Music API file",

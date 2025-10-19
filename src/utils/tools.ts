@@ -219,20 +219,16 @@ export const tipDialog = async({
   btnText = global.i18n.t('dialog_confirm'),
   bgClose = true,
 }) => {
+  // 动态导入以避免循环依赖
+  const { showTipDialog } = await import('@/components/common/TipDialogManager')
   return new Promise<void>(resolve => {
-    Alert.alert(title, message, [
-      {
-        text: btnText,
-        onPress() {
-          resolve()
-        },
-      },
-    ], {
-      cancelable: bgClose,
-      onDismiss() {
-        resolve()
-      },
+    showTipDialog({
+      message,
+      btnText,
+      bgHide: bgClose,
     })
+    // 立即 resolve，因为我们的自定义弹窗不需要等待用户点击
+    resolve()
   })
 }
 

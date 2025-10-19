@@ -1,10 +1,10 @@
-import { memo, useEffect, useRef } from 'react'
+import { memo, useEffect, useRef, useState, useMemo } from 'react'
 import { View, TouchableOpacity, FlatList, type NativeScrollEvent, type NativeSyntheticEvent, type FlatListProps } from 'react-native'
 
 import { Icon } from '@/components/common/Icon'
 
 import { useTheme } from '@/store/theme/hook'
-import { useActiveListId, useListFetching, useMyList } from '@/store/list/hook'
+import { useActiveListId, useListFetching } from '@/store/list/hook'
 import { createStyle } from '@/utils/tools'
 import { LIST_SCROLL_POSITION_KEY } from '@/config/constant'
 import { getListPosition, saveListPosition } from '@/utils/data'
@@ -13,6 +13,8 @@ import Text from '@/components/common/Text'
 import { type Position } from './ListMenu'
 import { scaleSizeH } from '@/utils/pixelRatio'
 import Loading from '@/components/common/Loading'
+import listState from '@/store/list/state'
+import { useSettingValue } from '@/store/setting/hook'
 
 type FlatListType = FlatListProps<LX.List.MyListInfo>
 
@@ -74,15 +76,26 @@ export default ({ onShowMenu }: {
   onShowMenu: (info: { listInfo: LX.List.MyListInfo, index: number }, position: Position) => void
 }) => {
   const flatListRef = useRef<FlatList>(null)
-  const allList = useMyList()
   const activeListId = useActiveListId()
+  const [userList, setUserList] = useState(listState.userList)
+  const langId = useSettingValue('common.langId')
+  
+  // 组合所有列表：临时列表 + 默认列表 + 我喜欢 + 用户列表
+  const allList = useMemo(() => {
+    const list = [
+      { ...listState.tempList, name: global.i18n.t('list_name_temp') },
+      { ...listState.defaultList, name: global.i18n.t('list_name_default') },
+      { ...listState.loveList, name: global.i18n.t('list_name_love') },
+      ...userList,
+    ] as LX.List.MyListInfo[]
+    console.log('📜 当前显示的列表数量:', list.length, '列表内容:', list.map(l => l.name))
+    return list
+  }, [userList, langId])
 
   const handleToggleList = (item: LX.List.MyListInfo) => {
-    // setVisiblePanel(false)
-    global.app_event.changeLoveListVisible(false)
-    requestAnimationFrame(() => {
-      setActiveList(item.id)
-    })
+    console.log('🎵 点击列表项:', item.name, item.id)
+    // 直接切换到选中的列表
+    setActiveList(item.id)
   }
 
 
@@ -98,6 +111,16 @@ export default ({ onShowMenu }: {
     void getListPosition(LIST_SCROLL_POSITION_KEY).then((offset) => {
       flatListRef.current?.scrollToOffset({ offset, animated: false })
     })
+    
+    // 监听列表更新
+    const handleListUpdate = () => {
+      setUserList([...listState.userList])
+    }
+    global.state_event.on('mylistUpdated', handleListUpdate)
+    
+    return () => {
+      global.state_event.off('mylistUpdated', handleListUpdate)
+    }
   }, [])
 
   const renderItem: FlatListType['renderItem'] = ({ item, index }) => (
@@ -120,16 +143,18 @@ export default ({ onShowMenu }: {
       ref={flatListRef}
       onScroll={handleScroll}
       style={styles.container}
+      contentContainerStyle={styles.contentContainer}
       data={allList}
       maxToRenderPerBatch={9}
       // updateCellsBatchingPeriod={80}
       windowSize={9}
-      removeClippedSubviews={true}
+      removeClippedSubviews={false}
       initialNumToRender={18}
       renderItem={renderItem}
       keyExtractor={getkey}
       // extraData={activeIndex}
       getItemLayout={getItemLayout}
+      nestedScrollEnabled={true}
     />
   )
 }
@@ -137,8 +162,10 @@ export default ({ onShowMenu }: {
 
 const styles = createStyle({
   container: {
-    flexShrink: 1,
-    flexGrow: 0,
+    flex: 1,
+  },
+  contentContainer: {
+    paddingVertical: 4,
   },
   // listContainer: {
   //   // borderBottomWidth: BorderWidths.normal2,

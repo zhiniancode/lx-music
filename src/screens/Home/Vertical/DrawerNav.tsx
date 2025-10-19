@@ -158,6 +158,7 @@ export default memo(() => {
         {
           showBackBtn ? <MenuItem id="back_home" icon="home" onPress={handlePress} /> : null
         }
+        <MenuItem id="nav_setting" icon="setting" onPress={handlePress} />
         {
           showExitBtn ? <MenuItem id="nav_exit" icon="exit2" onPress={handlePress} /> : null
         }

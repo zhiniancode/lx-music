@@ -21,7 +21,7 @@ const styles = createStyle({
     minWidth: '60%',
     maxHeight: '78%',
     // backgroundColor: 'white',
-    borderRadius: 4,
+    borderRadius: 16,
     // shadowColor: '#000',
     // shadowOffset: {
     //   width: 0,
@@ -35,8 +35,8 @@ const styles = createStyle({
     flexGrow: 0,
     flexShrink: 0,
     flexDirection: 'row',
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     height: HEADER_HEIGHT,
   },
   title: {
@@ -47,7 +47,7 @@ const styles = createStyle({
   closeBtn: {
     position: 'absolute',
     right: 0,
-    borderTopRightRadius: 4,
+    borderTopRightRadius: 16,
     flexGrow: 0,
     flexShrink: 0,
     height: HEADER_HEIGHT,

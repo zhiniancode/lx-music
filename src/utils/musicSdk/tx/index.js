@@ -27,7 +27,10 @@ const tx = {
     return lyric.getLyric(songInfo.songmid)
   },
   getPic(songInfo) {
-    return apis('tx').getPic(songInfo)
+    // 直接返回已经生成的图片URL，避免调用可能不存在的API
+    return {
+      promise: Promise.resolve(songInfo.meta?.picUrl || '')
+    }
   },
   getMusicDetailPageUrl(songInfo) {
     return `https://y.qq.com/n/yqq/song/${songInfo.songmid}.html`
