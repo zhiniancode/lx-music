@@ -15,7 +15,7 @@ import MusicAddModal, { type MusicAddModalType } from '@/components/MusicAddModa
 import playerState from '@/store/player/state'
 import SettingPopup, { type SettingPopupType } from '../../components/SettingPopup'
 
-export default memo(() => {
+export default memo(({ bottomInset = 0 }: { bottomInset?: number }) => {
   const theme = useTheme()
   const isPlay = useIsPlay()
   const playMusicInfo = usePlayMusicInfo()
@@ -102,7 +102,7 @@ export default memo(() => {
 
   return (
     <>
-      <View style={styles.container} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_player}>
+      <View style={[styles.container, { paddingBottom: bottomInset }]} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_player}>
         <PlayInfo renderLikeButton={renderLikeButton} />
         
         {/* 新的控制栏布局 - 5个按钮 */}
@@ -153,7 +153,7 @@ const styles = createStyle({
     flex: 0,
     width: '100%',
     paddingHorizontal: 15,
-    paddingBottom: 15,
+    paddingBottom: 0,
     paddingTop: 5,
     flexDirection: 'column',
   },
@@ -170,7 +170,8 @@ const styles = createStyle({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: scaleSizeW(15),
-    paddingVertical: scaleSizeW(20),
+    paddingTop: scaleSizeW(20),
+    paddingBottom: scaleSizeW(5),
     width: '100%',
   },
   leftButtons: {

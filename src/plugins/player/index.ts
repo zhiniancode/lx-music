@@ -1,4 +1,4 @@
-import TrackPlayer from 'react-native-track-player'
+import TrackPlayer, { State } from 'react-native-track-player'
 import { updateOptions, setVolume, setPlaybackRate, migratePlayerCache } from './utils'
 
 // const listenEvent = () => {
@@ -40,6 +40,17 @@ const initial = async({ volume, playRate, cacheSize, isHandleAudioFocus, isEnabl
   await updateOptions()
   await setVolume(volume)
   await setPlaybackRate(playRate)
+  
+  // 确保应用重启时，如果播放器正在播放则停止它
+  try {
+    const currentState = await TrackPlayer.getState()
+    if (currentState === State.Playing || currentState === State.Buffering) {
+      console.log('播放器初始化后检测到正在播放，停止播放')
+      await TrackPlayer.pause()
+    }
+  } catch (error) {
+    console.log('检查播放器状态失败:', error)
+  }
   // listenEvent()
 }
 

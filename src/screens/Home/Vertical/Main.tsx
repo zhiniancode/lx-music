@@ -239,6 +239,11 @@ const SettingPage = () => {
         requestAnimationFrame(() => {
           setVisible(true)
         })
+      } else if (visible) {
+        // 切换到其他页面时，隐藏设置页面
+        requestAnimationFrame(() => {
+          setVisible(false)
+        })
       }
     }
     global.state_event.on('navActiveIdUpdated', handleNavIdUpdate)
@@ -246,7 +251,7 @@ const SettingPage = () => {
     return () => {
       global.state_event.off('navActiveIdUpdated', handleNavIdUpdate)
     }
-  }, [])
+  }, [visible])
   return visible ? component : null
 }
 

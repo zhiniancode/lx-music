@@ -104,13 +104,15 @@ export default forwardRef<ConfirmDialogType, ConfirmDialogProps>(({
   }))
 
   const handleCancel = () => {
-    modalRef.current?.setVisible(false)
+    // 先调用回调，再关闭 Modal（避免时序问题）
     onCancel?.()
+    modalRef.current?.setVisible(false)
   }
 
   const handleConfirm = () => {
-    modalRef.current?.setVisible(false)
+    // 先调用回调，再关闭 Modal（避免时序问题）
     onConfirm?.()
+    modalRef.current?.setVisible(false)
   }
 
   return (

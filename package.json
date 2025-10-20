@@ -1,7 +1,7 @@
 {
-  "name": "lx-music-mobile",
-  "version": "1.7.1",
-  "versionCode": 71,
+  "name": "liusheng-music",
+  "version": "1.0.2",
+  "versionCode": 102,
   "private": true,
   "scripts": {
     "dev": "react-native run-android --active-arch-only",
@@ -28,21 +28,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lyswhut/lx-music-mobile.git"
+    "url": ""
   },
   "keywords": [
     "music-player",
-    "react-native-app"
+    "liusheng-music"
   ],
   "author": {
-    "name": "lyswhut",
-    "email": "lyswhut@qq.com"
+    "name": "你的名字",
+    "email": "你的邮箱@example.com"
   },
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/lyswhut/lx-music-mobile/issues"
+    "url": ""
   },
-  "homepage": "https://github.com/lyswhut/lx-music-mobile#readme",
+  "homepage": "http://47.115.63.247",
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",
     "@react-native-async-storage/async-storage": "^2.1.2",

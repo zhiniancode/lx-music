@@ -9,6 +9,49 @@ import { storageDataPrefix } from '@/config/constant'
 import settingState from '@/store/setting/state'
 
 /**
+ * 精简歌曲信息，只保留恢复列表所需的核心数据
+ * 去除可重新获取的数据（如封面URL、歌词URL等）以节省空间
+ */
+const compactMusicInfo = (music: any) => {
+  if (!music) return music
+  
+  const compactMeta: any = {
+    songId: music.meta.songId,
+    albumName: music.meta.albumName,
+  }
+  
+  // 保留音质信息（体积小但很重要）
+  if (music.meta.qualitys) {
+    compactMeta.qualitys = music.meta.qualitys
+  }
+  if (music.meta._qualitys) {
+    compactMeta._qualitys = music.meta._qualitys
+  }
+  
+  // 保留平台特定的关键ID（不包含URL）
+  if (music.meta.albumId) compactMeta.albumId = music.meta.albumId
+  if (music.meta.hash) compactMeta.hash = music.meta.hash
+  if (music.meta.strMediaMid) compactMeta.strMediaMid = music.meta.strMediaMid
+  if (music.meta.copyrightId) compactMeta.copyrightId = music.meta.copyrightId
+  if (music.meta.albumMid) compactMeta.albumMid = music.meta.albumMid
+  
+  // 本地音乐特殊处理
+  if (music.source === 'local') {
+    compactMeta.filePath = music.meta.filePath
+    compactMeta.ext = music.meta.ext
+  }
+  
+  return {
+    id: music.id,
+    name: music.name,
+    singer: music.singer,
+    source: music.source,
+    interval: music.interval,
+    meta: compactMeta,
+  }
+}
+
+/**
  * 收集需要同步的本地数据
  */
 const collectLocalData = async () => {
@@ -16,11 +59,27 @@ const collectLocalData = async () => {
     // 获取所有列表数据
     const lists = await getData<any[]>(storageDataPrefix.userList)
     
+    // 获取每个列表的歌曲数据
+    const listsWithMusic = []
+    if (lists && lists.length > 0) {
+      for (const list of lists) {
+        const musicList = await getData<any[]>(`${storageDataPrefix.list}${list.id}`)
+        
+        // 精简歌曲数据，减少存储空间
+        const compactMusicList = musicList ? musicList.map(compactMusicInfo) : []
+        
+        listsWithMusic.push({
+          ...list,
+          musicList: compactMusicList,
+        })
+      }
+    }
+    
     // 获取设置数据
     const settings = settingState.setting
 
     return {
-      lists: lists || [],
+      lists: listsWithMusic,
       settings,
       timestamp: Date.now(),
     }
@@ -28,6 +87,14 @@ const collectLocalData = async () => {
     console.error('Collect local data error:', error)
     throw error
   }
+}
+
+/**
+ * 计算数据大小（KB）
+ */
+const calculateDataSize = (data: any): number => {
+  const jsonStr = JSON.stringify(data)
+  return Math.round((new Blob([jsonStr]).size) / 1024)
 }
 
 /**
@@ -47,6 +114,13 @@ export const syncToCloud = async (): Promise<{ success: boolean; message: string
     // 收集本地数据
     const localData = await collectLocalData()
     
+    // 统计数据信息
+    const totalLists = localData.lists.length
+    const totalSongs = localData.lists.reduce((sum, list) => sum + (list.musicList?.length || 0), 0)
+    const dataSize = calculateDataSize(localData)
+    
+    console.log(`同步上传: ${totalLists}个列表, ${totalSongs}首歌曲, ${dataSize}KB`)
+    
     // 上传到云端
     const result = await uploadSyncData(authState.userInfo.token, localData)
     
@@ -56,7 +130,7 @@ export const syncToCloud = async (): Promise<{ success: boolean; message: string
       await saveLastSyncTimeToLocal(syncTime)
       return {
         success: true,
-        message: '同步成功',
+        message: `同步成功 (${totalLists}个列表, ${totalSongs}首歌曲, ${dataSize}KB)`,
       }
     } else {
       return {
@@ -93,14 +167,48 @@ export const syncFromCloud = async (): Promise<{ success: boolean; message: stri
     const result = await downloadSyncData(authState.userInfo.token)
     
     if (result.success && result.data) {
-      // 保存列表数据
+      // 保存列表数据和歌曲数据
       if (result.data.lists) {
-        await saveData(storageDataPrefix.userList, result.data.lists)
+        // 分离列表信息和歌曲数据
+        const listsInfo = []
+        const musicDataToSave = []
+        
+        for (const list of result.data.lists) {
+          // 保存列表信息（不包含歌曲）
+          const { musicList, ...listInfo } = list
+          listsInfo.push(listInfo)
+          
+          // 保存歌曲数据到独立存储
+          musicDataToSave.push({
+            listId: list.id,
+            key: `${storageDataPrefix.list}${list.id}`,
+            data: musicList || [],
+          })
+        }
+        
+        // 保存列表信息
+        await saveData(storageDataPrefix.userList, listsInfo)
+        
+        // 批量保存歌曲数据到存储，并同步更新内存
+        const { setMusicList } = require('@/utils/listManage')
+        for (const item of musicDataToSave) {
+          await saveData(item.key, item.data)
+          // 关键：同步更新内存中的音乐列表，UI才能显示
+          setMusicList(item.listId, item.data)
+        }
+        
+        console.log(`已恢复 ${musicDataToSave.length} 个列表，共 ${musicDataToSave.reduce((sum, item) => sum + item.data.length, 0)} 首歌曲`)
         
         // 立即更新列表状态，让UI实时刷新
         const listActions = require('@/store/list/action').default
         if (listActions && listActions.setUserLists) {
-          listActions.setUserLists(result.data.lists)
+          listActions.setUserLists(listsInfo)
+        }
+        
+        // 触发列表更新事件，通知UI刷新
+        if (global.app_event && global.app_event.myListMusicUpdate) {
+          const listIds = musicDataToSave.map(item => item.listId)
+          global.app_event.myListMusicUpdate(listIds)
         }
       }
       
@@ -114,9 +222,13 @@ export const syncFromCloud = async (): Promise<{ success: boolean; message: stri
       authActions.setLastSyncTime(syncTime)
       await saveLastSyncTimeToLocal(syncTime)
       
+      // 统计下载的数据
+      const totalLists = result.data.lists?.length || 0
+      const totalSongs = result.data.lists?.reduce((sum: number, list: any) => sum + (list.musicList?.length || 0), 0) || 0
+      
       return {
         success: true,
-        message: '数据下载成功，列表已更新',
+        message: `下载成功 (${totalLists}个列表, ${totalSongs}首歌曲)`,
       }
     } else {
       return {

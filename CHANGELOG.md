@@ -6,6 +6,18 @@ Project versioning adheres to [Semantic Versioning](http://semver.org/).
 Commit convention is based on [Conventional Commits](http://conventionalcommits.org).
 Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [1.0.2](/compare/v1.7.1...v1.0.2) - 2025-10-20
+
+### 修复
+
+- 修复退出应用后音乐继续播放的问题
+- 修复重启应用时播放器状态不同步的问题
+- 修复应用重启后出现短暂播放声音的问题
+
+### 优化
+
+- 优化播放器状态管理机制，确保退出应用时正确停止播放
+
 ## [1.7.1](https://github.com/lyswhut/lx-music-mobile/compare/v1.7.0...v1.7.1) - 2025-05-01
 
 ### 修复

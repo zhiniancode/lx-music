@@ -52,7 +52,9 @@ const LoginScreen: NavigationFunctionComponent = ({ componentId }) => {
         void tipDialog({
           title: t('login_success'),
           message: t('login_success_message'),
-        }).then(() => {
+        }).then(async () => {
+          // 等待提示弹窗动画完成后再导航
+          await new Promise(resolve => setTimeout(resolve, 200))
           handleLoginSuccess()
         })
       } else {
@@ -106,7 +108,9 @@ const LoginScreen: NavigationFunctionComponent = ({ componentId }) => {
         void tipDialog({
           title: t('register_success'),
           message: t('register_success_message'),
-        }).then(() => {
+        }).then(async () => {
+          // 等待提示弹窗动画完成后再导航
+          await new Promise(resolve => setTimeout(resolve, 200))
           handleLoginSuccess()
         })
       } else {
@@ -134,6 +138,8 @@ const LoginScreen: NavigationFunctionComponent = ({ componentId }) => {
       confirmButtonText: t('confirm'),
     })
     if (confirmed) {
+      // 等待弹窗动画完成后再导航，避免状态冲突
+      await new Promise(resolve => setTimeout(resolve, 200))
       handleLoginSuccess()
     }
   }

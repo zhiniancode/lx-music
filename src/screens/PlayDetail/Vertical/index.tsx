@@ -1,5 +1,5 @@
-import { memo, useRef, useEffect } from 'react'
-import { View, AppState, ImageBackground } from 'react-native'
+import { memo, useRef, useEffect, useState } from 'react'
+import { View, AppState, ImageBackground, Dimensions, StatusBar, Platform } from 'react-native'
 
 import Header from './components/Header'
 import Player from './Player'
@@ -15,6 +15,20 @@ import { scaleSizeW } from '@/utils/pixelRatio'
 export default memo(({ componentId }: { componentId: string }) => {
   const showLyricRef = useRef(true) // 始终显示歌词
   const playMusicInfo = usePlayMusicInfo()
+  const [bottomInset, setBottomInset] = useState(0)
+
+  useEffect(() => {
+    // 计算底部安全区域（屏幕高度 - 可见区域高度）
+    const screenHeight = Dimensions.get('screen').height
+    const windowHeight = Dimensions.get('window').height
+    const statusBarHeight = StatusBar.currentHeight || 0
+    const calculatedBottomInset = screenHeight - windowHeight - statusBarHeight
+    
+    // 只在Android上设置底部inset，并确保是正数
+    if (Platform.OS === 'android' && calculatedBottomInset > 0) {
+      setBottomInset(calculatedBottomInset)
+    }
+  }, [])
 
   useEffect(() => {
     // 进入播放页面时保持屏幕常亮
@@ -70,7 +84,7 @@ export default memo(({ componentId }: { componentId: string }) => {
         <Lyric />
       </View>
       
-      <Player />
+      <Player bottomInset={bottomInset} />
     </View>
   )
 })

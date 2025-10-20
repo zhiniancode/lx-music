@@ -424,14 +424,14 @@ export const HUIBQ_USER_API_ID = 'huibq_lxmusic_api'
 // 预置API源列表（第一个将作为默认源）
 export const PRESET_USER_APIS = [
   {
-    id: HUIBQ_USER_API_ID,
-    name: 'Huibq_lxmusic源',
-    script: HUIBQ_USER_API_SCRIPT
-  },
-  {
     id: DEFAULT_USER_API_ID,
     name: '微信公众号：洛雪音乐',
     script: DEFAULT_USER_API_SCRIPT
+  },
+  {
+    id: HUIBQ_USER_API_ID,
+    name: 'Huibq_lxmusic源',
+    script: HUIBQ_USER_API_SCRIPT
   }
 ]
 

@@ -155,16 +155,20 @@ export const userListCreate = ({ name, id, source, sourceListId, position, locat
   createUserList(newList, position)
 }
 
-export const userListsRemove = (ids: string[]) => {
+export const userListsRemove = async(ids: string[]) => {
   const changedIds = []
+  const removePromises = []
   for (const id of ids) {
     removeUserList(id)
     if (!allMusicList.has(id)) continue
     removeMusicList(id)
-    void removeListPosition(id)
-    void removeListUpdateInfo(id)
+    removePromises.push(removeListPosition(id))
+    removePromises.push(removeListUpdateInfo(id))
     changedIds.push(id)
   }
+
+  // 等待所有删除操作完成
+  await Promise.all(removePromises)
 
   return changedIds
 }

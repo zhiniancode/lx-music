@@ -31,7 +31,14 @@ interface LoginResponse {
 }
 
 interface SyncData {
-  lists: any[] // 歌单数据
+  lists: Array<{
+    id: string
+    name: string
+    source?: string
+    sourceListId?: string
+    locationUpdateTime?: number | null
+    musicList?: any[] // 列表中的歌曲数据
+  }> // 歌单数据（包含歌曲）
   settings: any // 设置数据
   timestamp: number
 }

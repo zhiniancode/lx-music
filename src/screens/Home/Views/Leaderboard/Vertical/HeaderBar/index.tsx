@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useRef, useEffect } from 'react'
-import { View } from 'react-native'
+import { View, TouchableOpacity } from 'react-native'
 
 // import { useGetter, useDispatch } from '@/store'
 // import Tag from './Tag'
@@ -14,6 +14,9 @@ import { useTheme } from '@/store/theme/hook'
 import ActiveListName, { type ActiveListNameType } from './ActiveListName'
 import { BorderWidths } from '@/theme'
 import leaderboardState from '@/store/leaderboard/state'
+import { Icon } from '@/components/common/Icon'
+import Text from '@/components/common/Text'
+import { handlePlay } from '../../listAction'
 
 export interface HeaderBarProps {
   onShowBound: () => void
@@ -45,11 +48,25 @@ export default forwardRef<HeaderBarType, HeaderBarProps>(({ onShowBound, onSourc
     },
   }), [])
 
+  // 播放全部功能
+  const handlePlayAll = () => {
+    const listDetailInfo = leaderboardState.listDetailInfo
+    if (listDetailInfo.list.length > 0) {
+      void handlePlay(listDetailInfo.id, listDetailInfo.list, 0)
+    }
+  }
 
   return (
     <View style={{ ...styles.currentList, borderBottomColor: theme['c-border-background'] }}>
       <SourceSelector ref={sourceSelectorRef} onSourceChange={onSourceChange} />
       <ActiveListName ref={activeListNameRef} onShowBound={onShowBound} />
+      <TouchableOpacity 
+        onPress={handlePlayAll}
+        style={styles.playAllButton}
+      >
+        <Icon name="play" size={14} color={theme['c-button-font']} />
+        <Text size={13} color={theme['c-button-font']} style={styles.playAllText}>播放全部</Text>
+      </TouchableOpacity>
     </View>
   )
 })
@@ -64,5 +81,15 @@ const styles = createStyle({
   },
   selector: {
     width: 86,
+  },
+  playAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 10,
+  },
+  playAllText: {
+    marginLeft: 4,
   },
 })

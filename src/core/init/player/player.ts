@@ -6,9 +6,24 @@ import { setStop } from '@/plugins/player'
 import { delayUpdateMusicInfo } from '@/plugins/player/playList'
 import playerState from '@/store/player/state'
 import settingState from '@/store/setting/state'
+import TrackPlayer, { State } from 'react-native-track-player'
 
 
 export default async(setting: LX.AppSetting) => {
+  // 应用启动时检查并同步播放器状态
+  // 如果 TrackPlayer 正在播放（例如从后台恢复），确保停止它
+  try {
+    if (global.lx.playerStatus.isInitialized) {
+      const currentState = await TrackPlayer.getState()
+      if (currentState === State.Playing || currentState === State.Buffering) {
+        console.log('检测到播放器正在播放，停止播放以同步状态')
+        await TrackPlayer.pause()
+        setIsPlay(false)
+      }
+    }
+  } catch (error) {
+    console.log('同步播放器状态失败:', error)
+  }
   const setPlayStatus = () => {
     setIsPlay(true)
   }

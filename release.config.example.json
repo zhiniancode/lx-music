@@ -1,0 +1,8 @@
+{
+  "server": {
+    "user": "root",
+    "host": "your-server-ip-or-domain",
+    "path": "/var/www/liusheng-music"
+  }
+}
+

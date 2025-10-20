@@ -9,13 +9,62 @@ import settingState from '@/store/setting/state'
 import BackgroundTimer from 'react-native-background-timer'
 import { type FileType } from '@/utils/fs'
 
+// 用于防止重复删除的锁
+const removingListIds = new Set<string>()
+
+// 调试工具：清除所有删除锁（如果出现问题可以手动调用）
+export const clearRemovingLocks = () => {
+  const count = removingListIds.size
+  removingListIds.clear()
+  log.info('已清除所有删除锁，数量:', count)
+  return count
+}
+
+// 调试工具：查看当前锁定的列表
+export const getRemovingLocks = () => {
+  return Array.from(removingListIds)
+}
+
 export const handleRemove = (listInfo: LX.List.UserListInfo) => {
+  // 如果这个列表正在被删除，则忽略（给出提示避免用户困惑）
+  if (removingListIds.has(listInfo.id)) {
+    log.warn('列表正在删除中:', listInfo.name, listInfo.id)
+    toast('正在删除中，请稍候...')
+    return
+  }
+  
+  // 在弹出确认对话框前就加入锁，防止重复弹窗
+  removingListIds.add(listInfo.id)
+  log.info('准备删除列表:', listInfo.name, listInfo.id)
+  
   void confirmDialog({
     message: global.i18n.t('list_remove_tip', { name: listInfo.name }),
     confirmButtonText: global.i18n.t('list_remove_tip_button'),
-  }).then(isRemove => {
-    if (!isRemove) return
-    void removeUserList([listInfo.id])
+  }).then(async isRemove => {
+    if (!isRemove) {
+      // 用户取消删除，从集合中移除
+      log.info('用户取消删除:', listInfo.name, listInfo.id)
+      removingListIds.delete(listInfo.id)
+      return
+    }
+    
+    log.info('开始删除列表:', listInfo.name, listInfo.id)
+    try {
+      await removeUserList([listInfo.id])
+      log.info('删除列表成功:', listInfo.name, listInfo.id)
+      toast('删除成功')
+    } catch (error) {
+      log.error('Remove list error:', error)
+      toast('删除失败: ' + (error instanceof Error ? error.message : String(error)))
+    } finally {
+      // 删除完成后从集合中移除
+      removingListIds.delete(listInfo.id)
+      log.info('从删除锁中移除:', listInfo.id)
+    }
+  }).catch((error) => {
+    // 对话框异常时也要移除锁
+    log.error('确认对话框异常:', error)
+    removingListIds.delete(listInfo.id)
   })
 }
 

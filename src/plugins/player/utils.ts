@@ -199,6 +199,12 @@ export const migratePlayerCache = async() => {
 
 export const destroy = async() => {
   if (global.lx.playerStatus.isIniting || !global.lx.playerStatus.isInitialized) return
+  // 在销毁前先停止播放，确保退出应用后音乐不再播放
+  try {
+    await TrackPlayer.stop()
+  } catch (error) {
+    console.log('停止播放失败:', error)
+  }
   await TrackPlayer.destroy()
   global.lx.playerStatus.isInitialized = false
 }

@@ -231,10 +231,10 @@ export function pushPlayDetailScreen(componentId: string | COMPONENT_IDS, skipAn
           },
           navigationBar: {
             // visible: false,
-            backgroundColor: theme['c-content-background'],
+            backgroundColor: 'transparent',
           },
           layout: {
-            componentBackgroundColor: theme['c-content-background'],
+            componentBackgroundColor: '#000000',
           },
           animations: {
             push: skipAnimation ? {} : {

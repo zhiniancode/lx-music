@@ -115,7 +115,7 @@ export class ListEvent extends Event {
    * @param isRemote 是否属于远程操作
    */
   async list_remove(ids: string[], isRemote: boolean = false) {
-    const changedIds = userListsRemove(ids)
+    const changedIds = await userListsRemove(ids)
     await updateUserList(userLists)
     await removeListMusics(ids)
     this.emit('list_remove', ids, isRemote)

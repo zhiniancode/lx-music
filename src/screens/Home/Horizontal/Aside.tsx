@@ -10,6 +10,7 @@ import type { InitState } from '@/store/common/state'
 import { exitApp, setNavActiveId } from '@/core/common'
 import { BorderWidths } from '@/theme'
 import { useSettingValue } from '@/store/setting/hook'
+import authState from '@/store/auth/state'
 
 const NAV_WIDTH = 68
 

@@ -15,7 +15,7 @@ export const API_BASE_URL = 'http://你的服务器IP:3000/api'
 例如：
 - 本地测试: `http://localhost:3000/api`
 - 局域网: `http://192.168.1.100:3000/api`
-- 公网: `http://47.115.63.247:3000/api`
+- 公网: `http://你的公网IP:3000/api`
 
 3. 保存后运行项目即可
 
