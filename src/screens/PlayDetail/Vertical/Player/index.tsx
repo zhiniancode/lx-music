@@ -153,9 +153,10 @@ const styles = createStyle({
     flex: 0,
     width: '100%',
     paddingHorizontal: 15,
-    paddingBottom: 0,
+    paddingBottom: 15, // 增加底部内边距，确保内容不会被裁剪
     paddingTop: 5,
     flexDirection: 'column',
+    backgroundColor: 'transparent', // 确保背景透明
   },
   likeButton: {
     width: scaleSizeW(36),
@@ -171,7 +172,7 @@ const styles = createStyle({
     justifyContent: 'space-between',
     paddingHorizontal: scaleSizeW(15),
     paddingTop: scaleSizeW(20),
-    paddingBottom: scaleSizeW(5),
+    paddingBottom: scaleSizeW(20), // 增加底部内边距
     width: '100%',
   },
   leftButtons: {

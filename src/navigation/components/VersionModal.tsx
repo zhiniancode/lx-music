@@ -9,6 +9,7 @@ import { createStyle } from '@/utils/tools'
 import { useTheme } from '@/store/theme/hook'
 import { type VersionInfo } from '@/store/version/state'
 import Text from '@/components/common/Text'
+import MarkdownText from '@/components/common/MarkdownText'
 import { useI18n } from '@/lang'
 import { useVersionDownloadProgressUpdated, useVersionInfo, useVersionInfoIgnoreVersionUpdated } from '@/store/version/hook'
 import ModalContent from './ModalContent'
@@ -18,7 +19,7 @@ const VersionItem = ({ version, desc }: VersionInfo) => {
   return (
     <View style={styles.versionItem}>
       <Text style={styles.label}>v{version}</Text>
-      <Text selectable style={styles.desc}>{desc}</Text>
+      <MarkdownText selectable style={styles.desc}>{desc}</MarkdownText>
     </View>
   )
 }
@@ -50,7 +51,7 @@ const Content = memo(({ title, newVersionInfo }: {
                 <View>
                   <Text style={styles.label}>{t('version_label_change_log')}</Text>
                   <View style={{ paddingLeft: 10, marginTop: 5 }}>
-                    <Text selectable style={styles.desc}>{newVersionInfo.desc}</Text>
+                    <MarkdownText selectable style={styles.desc}>{newVersionInfo.desc}</MarkdownText>
                   </View>
                 </View>
               )

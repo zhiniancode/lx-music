@@ -7,7 +7,7 @@
         <!-- 让内容延伸到系统栏后面 -->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
     </style>
 
     <!-- Splash Screen theme. -->

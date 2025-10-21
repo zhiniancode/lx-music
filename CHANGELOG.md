@@ -6,6 +6,20 @@ Project versioning adheres to [Semantic Versioning](http://semver.org/).
 Commit convention is based on [Conventional Commits](http://conventionalcommits.org).
 Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [1.0.4](/compare/v1.0.3...v1.0.4) - 2025-10-21
+
+### 修复
+
+- 修复应用内更新下载后无法安装的问题
+- 修复 FileProvider 配置错误导致的安装失败
+- 修复播放页面底部导航栏白边问题
+
+### 优化
+
+- 优化应用更新安装流程
+
+
+
 ## [1.0.3](/compare/v1.0.2...v1.0.3) - 2025-10-21
 
 ### 修复

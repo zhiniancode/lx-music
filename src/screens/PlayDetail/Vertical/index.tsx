@@ -5,7 +5,7 @@ import Header from './components/Header'
 import Player from './Player'
 import Pic from './Pic'
 import Lyric from './Lyric'
-import { screenkeepAwake, screenUnkeepAwake } from '@/utils/nativeModules/utils'
+import { screenkeepAwake, screenUnkeepAwake, enableFullScreen, disableFullScreen } from '@/utils/nativeModules/utils'
 import commonState, { type InitState as CommonState } from '@/store/common/state'
 import { createStyle } from '@/utils/tools'
 import { usePlayMusicInfo } from '@/store/player/hook'
@@ -25,19 +25,28 @@ export default memo(({ componentId }: { componentId: string }) => {
     const calculatedBottomInset = screenHeight - windowHeight - statusBarHeight
     
     // 只在Android上设置底部inset，并确保是正数
-    if (Platform.OS === 'android' && calculatedBottomInset > 0) {
-      setBottomInset(calculatedBottomInset)
+    // 增加额外的padding以确保完全覆盖导航栏
+    if (Platform.OS === 'android') {
+      setBottomInset(Math.max(calculatedBottomInset, 20))
     }
   }, [])
 
   useEffect(() => {
-    // 进入播放页面时保持屏幕常亮
+    // 进入播放页面时保持屏幕常亮并启用全屏
     screenkeepAwake()
+    if (Platform.OS === 'android') {
+      enableFullScreen()
+    }
     
     let appstateListener = AppState.addEventListener('change', (state) => {
       switch (state) {
         case 'active':
-          if (!commonState.componentIds.comment) screenkeepAwake()
+          if (!commonState.componentIds.comment) {
+            screenkeepAwake()
+            if (Platform.OS === 'android') {
+              enableFullScreen()
+            }
+          }
           break
         case 'background':
           screenUnkeepAwake()
@@ -56,6 +65,10 @@ export default memo(({ componentId }: { componentId: string }) => {
       global.state_event.off('componentIdsUpdated', handleComponentIdsChange)
       appstateListener.remove()
       screenUnkeepAwake()
+      // 离开播放页面时退出全屏
+      if (Platform.OS === 'android') {
+        disableFullScreen()
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -94,6 +107,7 @@ const styles = createStyle({
     flex: 1,
     flexDirection: 'column',
     position: 'relative',
+    backgroundColor: '#000000', // 添加黑色背景色，确保底部不显示白色
   },
   backgroundImage: {
     position: 'absolute',

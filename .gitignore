@@ -69,5 +69,8 @@ buck-out/
 # Cloud server config (contains sensitive IP)
 src/config/cloudConfig.ts
 
+# Server config (contains sensitive IP)
+src/config/serverConfig.ts
+
 # Release config (contains personal server info)
 release.config.json

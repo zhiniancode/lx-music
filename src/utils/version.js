@@ -3,6 +3,7 @@ import { httpGet } from '@/utils/request'
 import { downloadFile, stopDownload, temporaryDirectoryPath } from '@/utils/fs'
 import { getSupportedAbis, installApk } from '@/utils/nativeModules/utils'
 import { APP_PROVIDER_NAME } from '@/config/constant'
+import serverConfig from '@/config/serverConfig'
 
 const abis = [
   'arm64-v8a',
@@ -13,8 +14,8 @@ const abis = [
 ]
 
 const address = [
-  // 你的服务器地址（暂时使用HTTP，配置好SSL后改为https）
-  ['http://47.115.63.247/version.json', 'direct'],
+  // 从配置文件读取服务器地址
+  [`${serverConfig.updateServer}${serverConfig.versionPath}`, 'direct'],
 ]
 
 
@@ -80,8 +81,8 @@ let apkSavePath
 
 export const downloadNewVersion = async(version, onDownload = noop) => {
   const abi = await getTargetAbi()
-  // 修改为你自己的服务器APK下载地址（暂时使用HTTP，配置好SSL后改为https）
-  const url = `http://47.115.63.247/apk/liusheng-music-v${version}-${abi}.apk`
+  // 从配置文件读取APK下载地址
+  const url = `${serverConfig.updateServer}${serverConfig.apkPath}/liusheng-music-v${version}-${abi}.apk`
   let savePath = temporaryDirectoryPath + '/lx-music-mobile.apk'
 
   if (downloadJobId) stopDownload(downloadJobId)

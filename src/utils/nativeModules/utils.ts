@@ -99,3 +99,12 @@ export const requestIgnoreBatteryOptimization = async() => new Promise<boolean>(
     resolve(false)
   })
 })
+
+// 全屏相关方法
+export const enableFullScreen = (): void => {
+  UtilsModule.onFullScreen()
+}
+
+export const disableFullScreen = (): void => {
+  UtilsModule.offFullScreen()
+}

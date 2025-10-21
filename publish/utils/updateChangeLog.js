@@ -34,7 +34,8 @@ module.exports = async newVerNum => {
     desc: version.desc,
   })
   version.version = newVerNum
-  version.desc = newMDChangeLog.replace(/(?:^|(\n))#{1,6} (.+)\n/g, '$1$2').trim()
+  // 保留 Markdown 格式（标题的 ### 符号），以支持应用内的 Markdown 高亮渲染
+  version.desc = newMDChangeLog.trim()
   pkg.version = newVerNum
   pkg.versionCode = pkg.versionCode + 1
 

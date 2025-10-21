@@ -1,7 +1,7 @@
 {
   "name": "liusheng-music",
-  "version": "1.0.3",
-  "versionCode": 103,
+  "version": "1.0.4",
+  "versionCode": 104,
   "private": true,
   "scripts": {
     "dev": "react-native run-android --active-arch-only",
@@ -42,7 +42,7 @@
   "bugs": {
     "url": ""
   },
-  "homepage": "http://47.115.63.247",
+  "homepage": "",
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",
     "@react-native-async-storage/async-storage": "^2.1.2",
